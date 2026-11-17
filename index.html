@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOC Daily Report System</title>
+  <!-- Library SheetJS untuk Export Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root { 
+      --bg: #050a07; 
+      --panel: rgba(16, 30, 20, 0.9); 
+      --primary: #10b981; 
+      --text: #d4f5dd; 
+      --border: rgba(16, 185, 129, 0.3); 
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 20px; min-height:100vh; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    .header { text-align:center; padding:20px; border-bottom:2px solid var(--primary); margin-bottom:30px; }
+    .header h1 { color:var(--primary); letter-spacing:2px; text-shadow:0 0 10px rgba(16,185,129,0.5); }
+    
+    .panel { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; backdrop-filter:blur(5px); }
+    .panel h2 { color:var(--primary); margin-bottom:15px; font-size:1.2rem; }
+    
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; }
+    label { display:block; color:#86efac; font-size:0.8rem; margin-bottom:5px; font-weight:600; }
+    input, select { width:100%; padding:10px; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:6px; color:white; outline:none; }
+    input:focus, select:focus { border-color:var(--primary); box-shadow:0 0 8px rgba(16,185,129,0.3); }
+    
+    .time-group { display:flex; gap:5px; }
+    .btn-icon { padding:0 12px; background:rgba(16,185,129,0.2); border:1px solid var(--primary); color:var(--primary); border-radius:6px; cursor:pointer; font-weight:bold; }
+    .btn-icon:hover { background:var(--primary); color:black; }
+    
+    .btn { padding:10px 20px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.3s; }
+    .btn-primary { background:var(--primary); color:#000; }
+    .btn-primary:hover { box-shadow:0 0 15px var(--primary); }
+    .btn-export { background:#3b82f6; color:white; }
+    
+    .table-wrap { overflow-x:auto; margin-top:10px; }
+    table { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:1000px; }
+    th { background:rgba(16,185,129,0.1); color:var(--primary); padding:12px; text-align:left; white-space:nowrap; border-bottom: 1px solid var(--border); }
+    td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); }
+    tr:hover { background:rgba(16,185,129,0.05); }
+    
+    .badge { padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; }
+    .b-open { background:rgba(245,158,11,0.2); color:#fcd34d; border:1px solid #f59e0b; }
+    .b-closed { background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid #10b981; }
+    
+    /* Loading & Toast */
+    #loading { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; display:none; justify-content:center; align-items:center; color:var(--primary); flex-direction:column; }
+    .spinner { width:40px; height:40px; border:4px solid rgba(16,185,129,0.3); border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; }
+    @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    
+    .toast { position:fixed; bottom:20px; right:20px; background:var(--primary); color:black; padding:12px 20px; border-radius:8px; font-weight:bold; transform:translateY(100px); transition:0.3s; z-index:1000; }
+    .toast.show { transform:translateY(0); }
+    
+    .status-bar { background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><div>Menghubungkan ke Spreadsheet...</div></div>
+<div id="toast" class="toast">Notifikasi!</div>
+
+<div class="container">
+  <div class="status-bar">
+    🖥️ <strong>Mode Lokal Aktif:</strong> Terhubung ke Google Sheets via API
+  </div>
+
+  <div class="header">
+    <h1>🛰️ NOC DAILY REPORT SYSTEM</h1>
+    <p style="color:#86efac; margin-top:5px;">Eskalasi Gangguan & Auto-Notification</p>
+  </div>
+
+  <!-- FORM INPUT -->
+  <div class="panel">
+    <h2>➕ Catat Gangguan Baru</h2>
+    <form id="formNoc" onsubmit="handleFormSubmit(event)">
+      <div class="form-grid">
+        <div>
+          <label>Nama Pelanggan *</label>
+          <input type="text" id="namaPelanggan" required placeholder="Ketik nama pelanggan...">
+        </div>
+        <div>
+          <label>Waktu Mulai *</label>
+          <div class="time-group">
+            <input type="datetime-local" id="waktuMulai" required>
+            <button type="button" class="btn-icon" onclick="setNow('waktuMulai')" title="Isi Waktu Sekarang">▶</button>
+          </div>
+        </div>
+        <div>
+          <label>Waktu Selesai</label>
+          <div class="time-group">
+            <input type="datetime-local" id="waktuSelesai">
+            <button type="button" class="btn-icon" onclick="setNow('waktuSelesai')" title="Isi Waktu Sekarang">⏹</button>
+          </div>
+        </div>
+        <div>
+          <label>Nama NOC *</label>
+          <input type="text" id="namaNoc" required placeholder="Nama Teknisi">
+        </div>
+        <div>
+          <label>Status *</label>
+          <select id="status">
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
+        
+        <!-- Opsional -->
+        <div><label>Nomor Ticket</label><input type="text" id="nomorTicket"></div>
+        <div><label>Kategori</label><input type="text" id="kategori" placeholder="Helpdesk/Maint"></div>
+        <div><label>IP Router</label><input type="text" id="ipRouter"></div>
+        <div><label>Site Metro</label><input type="text" id="siteMetro"></div>
+        <div style="grid-column: 1/-1;"><label>Deskripsi Kendala</label><input type="text" id="deskripsi"></div>
+      </div>
+      <div style="margin-top:20px; text-align:right;">
+        <button type="submit" class="btn btn-primary">💾 SIMPAN KE SPREADSHEET</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- FILTER & EXPORT -->
+  <div class="panel" style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:200px;">
+      <label>Pilih Tanggal:</label>
+      <input type="date" id="filterDate" onchange="loadDataByDate()">
+    </div>
+    <button class="btn btn-export" onclick="exportToExcel()">📥 EXPORT EXCEL</button>
+  </div>
+
+  <!-- TABEL DATA -->
+  <div class="panel">
+    <h2>📋 Data Gangguan (<span id="dateLabel">Hari Ini</span>)</h2>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>A. Pelanggan</th>
+            <th>B. Ticket</th>
+            <th>C. Kategori</th>
+            <th>D. Deskripsi</th>
+            <th>E. Waktu Mulai</th>
+            <th>F. Waktu Selesai</th>
+            <th>G. Durasi (m)</th>
+            <th>M. Nama NOC</th>
+            <th>Q. Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="9" style="text-align:center; padding:20px;">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // URL Web App Kamu Sudah Terpasang Di Sini
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwU-y2xpepT2w3WPwqv-NBDN5hUMxLAVRcYuKbbnjK1BfsNq2bfCReRhC3qwP8rjBRv2w/exec';
+  
+  let currentData = [];
+
+  window.onload = function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('filterDate').value = today;
+    
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+    
+    loadDataByDate();
+    setInterval(checkNotifications, 60000); // Cek notif setiap 1 menit
+  };
+
+  function setNow(id) {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById(id).value = now.toISOString().slice(0, 16);
+  }
+
+  function fmtDate(str) {
+    if(!str) return '-';
+    return new Date(str).toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+  }
+
+  // FUNGSI AMBIL DATA VIA FETCH API (PENGGANTI google.script.run)
+  function loadDataByDate() {
+    const dateVal = document.getElementById('filterDate').value;
+    if (!dateVal) return;
+    
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('dateLabel').innerText = dateVal;
+
+    // Panggil URL Web App dengan parameter action=getData
+    fetch(`${WEB_APP_URL}?action=getData&date=${dateVal}`)
+      .then(response => response.json())
+      .then(data => {
+        currentData = data;
+        renderTable(data);
+        document.getElementById('loading').style.display = 'none';
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('loading').style.display = 'none';
+        showToast("Gagal koneksi ke Spreadsheet!");
+      });
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#666;">Tidak ada data.</td></tr>';
+      return;
+    }
+    data.forEach(item => {
+      const badgeClass = item.status === 'Closed' ? 'b-closed' : 'b-open';
+      tbody.innerHTML += `
+        <tr>
+          <td>${item.namaPelanggan}</td>
+          <td>${item.nomorTicket || '-'}</td>
+          <td>${item.kategori || '-'}</td>
+          <td>${item.deskripsi || '-'}</td>
+          <td>${fmtDate(item.waktuMulai)}</td>
+          <td>${item.waktuSelesai ? fmtDate(item.waktuSelesai) : '-'}</td>
+          <td>${item.durasi || '-'}</td>
+          <td style="color:var(--primary); font-weight:bold;">${item.namaNoc}</td>
+          <td><span class="badge ${badgeClass}">${item.status}</span></td>
+        </tr>`;
+    });
+  }
+
+  // FUNGSI SIMPAN DATA VIA FETCH API
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    document.getElementById('loading').style.display = 'flex';
+    
+    const payload = {
+      action: 'saveData', // Penanda untuk backend
+      namaPelanggan: document.getElementById('namaPelanggan').value,
+      nomorTicket: document.getElementById('nomorTicket').value,
+      kategori: document.getElementById('kategori').value,
+      deskripsi: document.getElementById('deskripsi').value,
+      waktuMulai: document.getElementById('waktuMulai').value,
+      waktuSelesai: document.getElementById('waktuSelesai').value,
+      namaNoc: document.getElementById('namaNoc').value,
+      status: document.getElementById('status').value,
+      ipRouter: document.getElementById('ipRouter').value,
+      siteMetro: document.getElementById('siteMetro').value
+    };
+
+    // Kirim sebagai POST request
+    fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(res => {
+      document.getElementById('loading').style.display = 'none';
+      if (res.success) {
+        showToast("✅ " + res.message);
+        document.getElementById('formNoc').reset();
+        loadDataByDate(); 
+      } else {
+        showToast("❌ " + res.message);
+      }
+    })
+    .catch(err => {
+      document.getElementById('loading').style.display = 'none';
+      showToast("Error koneksi: " + err);
+    });
+  }
+
+  function exportToExcel() {
+    if (currentData.length === 0) return showToast("Tidak ada data!");
+    
+    const excelData = currentData.map(item => ({
+      "Nama Pelanggan": item.namaPelanggan, "Nomor Ticket": item.nomorTicket,
+      "Kategori": item.kategori, "Deskripsi Kendala": item.deskripsi,
+      "Waktu Mulai": item.waktuMulai, "Waktu Selesai": item.waktuSelesai,
+      "Durasi (Menit)": item.durasi, "Tindakan Perbaikan": item.tindakan,
+      "Analisa Kendala": item.analisa, "Nama Router": item.namaRouter,
+      "IP Router": item.ipRouter, "Detail Perubahan": item.detailPerubahan,
+      "Nama NOC": item.namaNoc, "Nama Metro": item.namaMetro,
+      "Site Metro": item.siteMetro, "Nomor Ticker": item.nomorTicker,
+      "Status": item.status
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Laporan NOC");
+    XLSX.writeFile(wb, `NOC_Report_${document.getElementById('filterDate').value}.xlsx`);
+    showToast("📥 Excel terdownload!");
+  }
+
+  function checkNotifications() {
+    if (currentData.length === 0) return;
+    const now = Date.now();
+    currentData.forEach(item => {
+      if (item.status === 'Closed') return;
+      const startTime = new Date(item.waktuMulai).getTime();
+      const minutesPassed = Math.floor((now - startTime) / 60000);
+      
+      // Notif jika kelipatan 30 menit (30, 60, 90...)
+      if (minutesPassed > 0 && minutesPassed % 30 === 0) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(`⚠️ ESKALASI: ${item.namaPelanggan}`, { body: `Sudah ${minutesPassed} menit!` });
+        }
+        showToast(`🔔 Eskalasi: ${item.namaPelanggan}`);
+      }
+    });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
