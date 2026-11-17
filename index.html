@@ -4,215 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>NOC Daily Report System</title>
-  <!-- Library SheetJS untuk Export Excel -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <style>
-    /* --- FUTURISTIC BLUE THEME --- */
+    /* --- FUTURISTIC BLUE THEME OPTIMIZED --- */
     :root { 
-      --bg-deep: #020617;       /* Biru Sangat Gelap (Background Utama) */
-      --bg-panel: #0f172a;      /* Biru Slate (Panel/Card) */
-      --primary: #38bdf8;       /* Cyan Terang (Aksen Utama) */
-      --primary-dim: rgba(56, 189, 248, 0.1);
-      --text-main: #e2e8f0;     /* Putih Kebiruan (Teks) */
-      --text-muted: #94a3b8;    /* Abu-abu Biru (Label) */
-      --border: #1e293b;        /* Garis Batas Halus */
-      --danger: #ef4444;
-      --success: #10b981;
+      --bg-deep: #020617; --bg-panel: #0f172a; --primary: #38bdf8; 
+      --primary-dim: rgba(56, 189, 248, 0.1); --text-main: #e2e8f0; 
+      --text-muted: #94a3b8; --border: #1e293b; --danger: #ef4444; --success: #10b981;
     }
-
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-    
-    body { 
-      background-color: var(--bg-deep); 
-      color: var(--text-main); 
-      min-height:100vh; 
-      padding: 15px;
-      background-image: radial-gradient(circle at top right, #1e3a8a 0%, transparent 40%); /* Efek Glow Biru di pojok */
-    }
-
+    body { background-color: var(--bg-deep); color: var(--text-main); min-height:100vh; padding: 15px; background-image: radial-gradient(circle at top right, #1e3a8a 0%, transparent 40%); }
     .container { max-width: 1400px; margin: 0 auto; }
     
-    /* Header Futuristik */
-    .header { 
-      text-align:center; 
-      padding:30px 20px; 
-      margin-bottom:30px; 
-      border-bottom:1px solid var(--border); 
-      position: relative;
-    }
-    .header::after {
-      content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
-      width: 100px; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary);
-    }
-    .header h1 { 
-      color:var(--primary); 
-      letter-spacing:3px; 
-      font-size: 1.8rem;
-      text-transform: uppercase;
-      text-shadow:0 0 15px rgba(56, 189, 248, 0.4); 
-    }
+    .header { text-align:center; padding:30px 20px; margin-bottom:30px; border-bottom:1px solid var(--border); position: relative; }
+    .header::after { content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%); width: 100px; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+    .header h1 { color:var(--primary); letter-spacing:3px; font-size: 1.8rem; text-transform: uppercase; text-shadow:0 0 15px rgba(56, 189, 248, 0.4); }
     .header p { color: var(--text-muted); margin-top:8px; font-size: 0.9rem; letter-spacing: 1px; }
 
-    /* Panel Card Style */
-    .panel { 
-      background: var(--bg-panel); 
-      border:1px solid var(--border); 
-      border-radius:16px; 
-      padding:25px; 
-      margin-bottom:25px; 
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .panel h2 { 
-      color:var(--primary); 
-      margin-bottom:20px; 
-      font-size:1.1rem; 
-      display: flex; align-items: center; gap: 10px;
-      border-left: 3px solid var(--primary); padding-left: 12px;
-    }
+    .panel { background: var(--bg-panel); border:1px solid var(--border); border-radius:16px; padding:25px; margin-bottom:25px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .panel h2 { color:var(--primary); margin-bottom:20px; font-size:1.1rem; display: flex; align-items: center; gap: 10px; border-left: 3px solid var(--primary); padding-left: 12px; }
 
-    /* Form Grid Responsive */
     .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px; }
-    
     label { display:block; color:var(--text-muted); font-size:0.75rem; margin-bottom:8px; font-weight:600; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    input, select { 
-      width:100%; 
-      padding:12px 15px; 
-      background:rgba(15, 23, 42, 0.8); 
-      border:1px solid var(--border); 
-      border-radius:8px; 
-      color:white; 
-      font-size: 0.95rem;
-      transition: all 0.3s ease;
-    }
-    input:focus, select:focus { 
-      border-color:var(--primary); 
-      box-shadow:0 0 0 3px rgba(56, 189, 248, 0.15); 
-      outline:none; 
-      background: #1e293b;
-    }
+    input, select { width:100%; padding:12px 15px; background:rgba(15, 23, 42, 0.8); border:1px solid var(--border); border-radius:8px; color:white; font-size: 0.95rem; transition: all 0.3s ease; }
+    input:focus, select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(56, 189, 248, 0.15); outline:none; background: #1e293b; }
 
-    /* Time Input Group */
     .time-group { display:flex; gap:8px; }
-    .btn-icon { 
-      padding:0 15px; 
-      background:var(--primary-dim); 
-      border:1px solid var(--primary); 
-      color:var(--primary); 
-      border-radius:8px; 
-      cursor:pointer; 
-      font-weight:bold; 
-      transition: 0.2s;
-      display: flex; align-items: center; justify-content: center;
-    }
+    .btn-icon { padding:0 15px; background:var(--primary-dim); border:1px solid var(--primary); color:var(--primary); border-radius:8px; cursor:pointer; font-weight:bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
     .btn-icon:hover { background:var(--primary); color:var(--bg-deep); }
 
-    /* Buttons */
-    .btn { 
-      padding:12px 24px; 
-      border:none; 
-      border-radius:8px; 
-      font-weight:700; 
-      cursor:pointer; 
-      transition:all 0.3s; 
-      text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;
-    }
-    .btn-primary { 
-      background: linear-gradient(135deg, var(--primary), #0284c7); 
-      color:var(--bg-deep); 
-      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-    }
+    .btn { padding:12px 24px; border:none; border-radius:8px; font-weight:700; cursor:pointer; transition:all 0.3s; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #0284c7); color:var(--bg-deep); box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
-    
     .btn-export { background: #2563eb; color:white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
     .btn-export:hover { background: #1d4ed8; }
 
-    /* Table Styles for Mobile */
-    .table-wrap { 
-      overflow-x:auto; 
-      margin-top:15px; 
-      border-radius: 12px; 
-      border: 1px solid var(--border);
-      -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
-    }
+    .table-wrap { overflow-x:auto; margin-top:15px; border-radius: 12px; border: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
     table { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:1000px; }
-    
-    th { 
-      background:rgba(30, 41, 59, 0.8); 
-      color:var(--primary); 
-      padding:15px; 
-      text-align:left; 
-      white-space:nowrap; 
-      border-bottom: 1px solid var(--border);
-      font-size: 0.8rem; text-transform: uppercase;
-    }
-    td { 
-      padding:12px 15px; 
-      border-bottom:1px solid var(--border); 
-      vertical-align: middle; 
-      color: var(--text-main);
-    }
+    th { background:rgba(30, 41, 59, 0.8); color:var(--primary); padding:15px; text-align:left; white-space:nowrap; border-bottom: 1px solid var(--border); font-size: 0.8rem; text-transform: uppercase; }
+    td { padding:12px 15px; border-bottom:1px solid var(--border); vertical-align: middle; color: var(--text-main); }
     tr:last-child td { border-bottom: none; }
     tr:hover { background:rgba(56, 189, 248, 0.03); }
 
-    /* Editable Inputs in Table */
-    .tbl-input { 
-      width: 100%; background: transparent; border: 1px solid transparent; 
-      color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.9rem;
-      transition: 0.2s;
-    }
+    .tbl-input { width: 100%; background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.9rem; transition: 0.2s; }
     .tbl-input:hover { border-color: var(--border); background: rgba(255,255,255,0.05); }
     .tbl-input:focus { border-color: var(--primary); background: rgba(15, 23, 42, 0.9); outline: none; }
 
-    /* Action Buttons in Table */
     .action-cell { display: flex; gap: 8px; flex-wrap: nowrap; }
-    .btn-stop { 
-      background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); 
-      padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold;
-      white-space: nowrap;
-    }
+    .btn-stop { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
     .btn-stop:hover { background: var(--danger); color: white; border-color: var(--danger); }
-    
-    .btn-save-row { 
-      background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold;
-      white-space: nowrap;
-    }
+    .btn-save-row { background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
     .btn-save-row:hover { background: var(--primary); color: var(--bg-deep); border-color: var(--primary); }
 
-    /* Loading & Toast */
     #loading { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.9); z-index:999; display:none; justify-content:center; align-items:center; color:var(--primary); flex-direction:column; backdrop-filter: blur(5px); }
     .spinner { width:45px; height:45px; border:3px solid rgba(56, 189, 248, 0.2); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
     @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
     
-    .toast { 
-      position:fixed; bottom:20px; right:20px; 
-      background:var(--bg-panel); border: 1px solid var(--primary); color:var(--primary); 
-      padding:15px 25px; border-radius:10px; font-weight:bold; 
-      transform:translateY(100px); transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-      z-index:1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
+    .toast { position:fixed; bottom:20px; right:20px; background:var(--bg-panel); border: 1px solid var(--primary); color:var(--primary); padding:15px 25px; border-radius:10px; font-weight:bold; transform:translateY(100px); transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index:1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .toast.show { transform:translateY(0); }
 
-    /* --- MOBILE OPTIMIZATION --- */
     @media (max-width: 768px) {
       body { padding: 10px; }
       .header h1 { font-size: 1.4rem; letter-spacing: 1px; }
       .panel { padding: 20px 15px; border-radius: 12px; }
-      .form-grid { grid-template-columns: 1fr; gap: 15px; } /* Stack form di HP */
-      
-      /* Tabel di HP: Pastikan scroll horizontal terlihat jelas */
-      .table-wrap { 
-        border-radius: 8px; 
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* Efek depth */
-      }
+      .form-grid { grid-template-columns: 1fr; gap: 15px; }
+      .table-wrap { border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
       th, td { padding: 10px; font-size: 0.85rem; }
-      
-      /* Tombol aksi lebih besar di HP */
       .btn-stop, .btn-save-row { padding: 8px 12px; font-size: 0.8rem; }
-      
-      /* Input field lebih tinggi di HP */
-      input, select, .tbl-input { padding: 14px; font-size: 16px; } /* Mencegah zoom otomatis di iOS */
+      input, select, .tbl-input { padding: 14px; font-size: 16px; }
     }
   </style>
 </head>
@@ -307,6 +166,7 @@
 <script>
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwU-y2xpepT2w3WPwqv-NBDN5hUMxLAVRcYuKbbnjK1BfsNq2bfCReRhC3qwP8rjBRv2w/exec';
   let currentData = [];
+  let saveTimeout = null; // Untuk debouncing
 
   window.onload = function() {
     const today = new Date().toISOString().split('T')[0];
@@ -322,7 +182,7 @@
     document.getElementById(id).value = now.toISOString().slice(0, 16);
   }
 
-  // --- FUNGSI LOAD DATA ---
+  // --- FUNGSI LOAD DATA (Hanya dipanggil saat ganti tanggal) ---
   function loadDataByDate() {
     const dateVal = document.getElementById('filterDate').value;
     if (!dateVal) return;
@@ -343,7 +203,7 @@
       });
   }
 
-  // --- RENDER TABEL DENGAN INPUT FIELD ---
+  // --- RENDER TABEL DENGAN OPTIMASI ---
   function renderEditableTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
@@ -352,45 +212,54 @@
       return;
     }
 
+    // Gunakan DocumentFragment untuk rendering lebih cepat
+    const fragment = document.createDocumentFragment();
+
     data.forEach((item, index) => {
       const isClosed = item["Status"] === 'Closed';
       const stopBtn = isClosed ? '' : `<button class="btn-stop" onclick="stopIncident(${index})">⏹ Stop</button>`;
       
-      tbody.innerHTML += `
-        <tr>
-          <td><input class="tbl-input" value="${item["Nama Pelanggan"] || ''}" onchange="updateLocal(${index}, 'Nama Pelanggan', this.value)"></td>
-          <td><input class="tbl-input" value="${item["Nomor Ticket"] || ''}" onchange="updateLocal(${index}, 'Nomor Ticket', this.value)"></td>
-          <td><input class="tbl-input" value="${item["Kategori"] || ''}" onchange="updateLocal(${index}, 'Kategori', this.value)"></td>
-          <td><input class="tbl-input" value="${item["Deskripsi Kendala"] || ''}" onchange="updateLocal(${index}, 'Deskripsi Kendala', this.value)"></td>
-          <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Mulai"]}</td>
-          <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Selesai"] || '-'}</td>
-          <td style="text-align:center;">${item["Durasi (Menit)"] || '-'}</td>
-          <td><input class="tbl-input" value="${item["Nama NOC"] || ''}" onchange="updateLocal(${index}, 'Nama NOC', this.value)"></td>
-          
-          <td>
-            <select class="tbl-input" onchange="updateLocal(${index}, 'Status', this.value)" style="cursor:pointer; font-weight:bold;">
-              <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
-              <option value="Closed" ${item["Status"]==='Closed'?'selected':''}>Closed</option>
-              <option value="Pending" ${item["Status"]==='Pending'?'selected':''}>Pending</option>
-            </select>
-          </td>
-          
-          <td>
-            <div class="action-cell">
-              ${stopBtn}
-              <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan</button>
-            </div>
-          </td>
-        </tr>`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="tbl-input" value="${item["Nama Pelanggan"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Pelanggan', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Nomor Ticket"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticket', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Kategori"] || ''}" onchange="debouncedUpdate(${index}, 'Kategori', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Deskripsi Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Deskripsi Kendala', this.value)"></td>
+        <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Mulai"]}</td>
+        <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Selesai"] || '-'}</td>
+        <td style="text-align:center;">${item["Durasi (Menit)"] || '-'}</td>
+        <td><input class="tbl-input" value="${item["Nama NOC"] || ''}" onchange="debouncedUpdate(${index}, 'Nama NOC', this.value)"></td>
+        <td>
+          <select class="tbl-input" onchange="debouncedUpdate(${index}, 'Status', this.value)" style="cursor:pointer; font-weight:bold;">
+            <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
+            <option value="Closed" ${item["Status"]==='Closed'?'selected':''}>Closed</option>
+            <option value="Pending" ${item["Status"]==='Pending'?'selected':''}>Pending</option>
+          </select>
+        </td>
+        <td>
+          <div class="action-cell">
+            ${stopBtn}
+            <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan</button>
+          </div>
+        </td>
+      `;
+      fragment.appendChild(tr);
     });
+    
+    tbody.appendChild(fragment);
   }
 
-  // --- UPDATE DATA LOKAL SAAT USER MENGETIK ---
-  function updateLocal(index, field, value) {
+  // --- DEBOUNCED UPDATE (Mencegah spam request saat mengetik) ---
+  function debouncedUpdate(index, field, value) {
     currentData[index][field] = value;
+    clearTimeout(saveTimeout);
+    // Otomatis simpan setelah user berhenti mengetik selama 1 detik
+    saveTimeout = setTimeout(() => {
+      saveRowUpdate(index, true); 
+    }, 1000);
   }
 
-  // --- FUNGSI STOP OTOMATIS ---
+  // --- FUNGSI STOP OTOMATIS (Instant UI Update) ---
   function stopIncident(index) {
     if(!confirm("Yakin ingin menghentikan gangguan ini?")) return;
     
@@ -398,6 +267,7 @@
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const timeStr = now.toISOString().slice(0, 16);
     
+    // Update lokal INSTAN sebelum kirim ke server
     currentData[index]["Waktu Selesai"] = timeStr;
     currentData[index]["Status"] = "Closed";
     
@@ -407,28 +277,25 @@
   }
 
   // --- KIRIM PERUBAHAN KE SPREADSHEET ---
-  function saveRowUpdate(index) {
+  function saveRowUpdate(index, isAutoSave = false) {
     const item = currentData[index];
-    document.getElementById('loading').style.display = 'flex';
+    if (!isAutoSave) document.getElementById('loading').style.display = 'flex';
     
-    const payload = {
-      action: 'updateData',
-      rowData: item
-    };
+    const payload = { action: 'updateData', rowData: item };
 
     fetch(WEB_APP_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
     .then(() => {
-      document.getElementById('loading').style.display = 'none';
-      showToast("✅ Perubahan tersimpan!");
+      if (!isAutoSave) document.getElementById('loading').style.display = 'none';
+      if (!isAutoSave) showToast("✅ Perubahan tersimpan!");
     })
     .catch(err => {
-      document.getElementById('loading').style.display = 'none';
-      showToast("Error koneksi");
+      if (!isAutoSave) {
+        document.getElementById('loading').style.display = 'none';
+        showToast("Error koneksi");
+      }
     });
   }
 
@@ -451,12 +318,7 @@
       siteMetro: document.getElementById('siteMetro').value
     };
 
-    fetch(WEB_APP_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
+    fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     .then(() => {
       document.getElementById('loading').style.display = 'none';
       showToast("✅ Data baru tersimpan!");
@@ -474,29 +336,20 @@
     if (currentData.length === 0) return showToast("Tidak ada data!");
     
     const excelData = currentData.map(item => ({
-      "Nama Pelanggan": item["Nama Pelanggan"],
-      "Nomor Ticket": item["Nomor Ticket"],
-      "Kategori": item["Kategori"],
-      "Deskripsi Kendala": item["Deskripsi Kendala"],
-      "Waktu Mulai": item["Waktu Mulai"],
-      "Waktu Selesai": item["Waktu Selesai"],
-      "Durasi (Menit)": item["Durasi (Menit)"],
-      "Tindakan Perbaikan": item["Tindakan Perbaikan"],
-      "Analisa Kendala": item["Analisa Kendala"],
-      "Nama Router": item["Nama Router"],
-      "IP Router": item["IP Router"],
-      "Detail Perubahan": item["Detail Perubahan"],
-      "Nama NOC": item["Nama NOC"],
-      "Nama Metro": item["Nama Metro"],
-      "Site Metro": item["Site Metro"],
-      "Nomor Ticker": item["Nomor Ticker"],
+      "Nama Pelanggan": item["Nama Pelanggan"], "Nomor Ticket": item["Nomor Ticket"],
+      "Kategori": item["Kategori"], "Deskripsi Kendala": item["Deskripsi Kendala"],
+      "Waktu Mulai": item["Waktu Mulai"], "Waktu Selesai": item["Waktu Selesai"],
+      "Durasi (Menit)": item["Durasi (Menit)"], "Tindakan Perbaikan": item["Tindakan Perbaikan"],
+      "Analisa Kendala": item["Analisa Kendala"], "Nama Router": item["Nama Router"],
+      "IP Router": item["IP Router"], "Detail Perubahan": item["Detail Perubahan"],
+      "Nama NOC": item["Nama NOC"], "Nama Metro": item["Nama Metro"],
+      "Site Metro": item["Site Metro"], "Nomor Ticker": item["Nomor Ticker"],
       "Status": item["Status"]
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Laporan NOC");
-    
     const dateVal = document.getElementById('filterDate').value;
     XLSX.writeFile(wb, `NOC_Report_${dateVal}.xlsx`);
     showToast("📥 Excel terdownload!");
