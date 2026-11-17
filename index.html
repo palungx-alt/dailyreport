@@ -2,93 +2,237 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>NOC Daily Report System</title>
   <!-- Library SheetJS untuk Export Excel -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <style>
+    /* --- FUTURISTIC BLUE THEME --- */
     :root { 
-      --bg: #050a07; 
-      --panel: rgba(16, 30, 20, 0.9); 
-      --primary: #10b981; 
-      --text: #d4f5dd; 
-      --border: rgba(16, 185, 129, 0.3); 
+      --bg-deep: #020617;       /* Biru Sangat Gelap (Background Utama) */
+      --bg-panel: #0f172a;      /* Biru Slate (Panel/Card) */
+      --primary: #38bdf8;       /* Cyan Terang (Aksen Utama) */
+      --primary-dim: rgba(56, 189, 248, 0.1);
+      --text-main: #e2e8f0;     /* Putih Kebiruan (Teks) */
+      --text-muted: #94a3b8;    /* Abu-abu Biru (Label) */
+      --border: #1e293b;        /* Garis Batas Halus */
+      --danger: #ef4444;
+      --success: #10b981;
     }
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 20px; min-height:100vh; }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    
+    body { 
+      background-color: var(--bg-deep); 
+      color: var(--text-main); 
+      min-height:100vh; 
+      padding: 15px;
+      background-image: radial-gradient(circle at top right, #1e3a8a 0%, transparent 40%); /* Efek Glow Biru di pojok */
+    }
+
     .container { max-width: 1400px; margin: 0 auto; }
     
-    .header { text-align:center; padding:20px; border-bottom:2px solid var(--primary); margin-bottom:30px; }
-    .header h1 { color:var(--primary); letter-spacing:2px; text-shadow:0 0 10px rgba(16,185,129,0.5); }
+    /* Header Futuristik */
+    .header { 
+      text-align:center; 
+      padding:30px 20px; 
+      margin-bottom:30px; 
+      border-bottom:1px solid var(--border); 
+      position: relative;
+    }
+    .header::after {
+      content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+      width: 100px; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary);
+    }
+    .header h1 { 
+      color:var(--primary); 
+      letter-spacing:3px; 
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      text-shadow:0 0 15px rgba(56, 189, 248, 0.4); 
+    }
+    .header p { color: var(--text-muted); margin-top:8px; font-size: 0.9rem; letter-spacing: 1px; }
+
+    /* Panel Card Style */
+    .panel { 
+      background: var(--bg-panel); 
+      border:1px solid var(--border); 
+      border-radius:16px; 
+      padding:25px; 
+      margin-bottom:25px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .panel h2 { 
+      color:var(--primary); 
+      margin-bottom:20px; 
+      font-size:1.1rem; 
+      display: flex; align-items: center; gap: 10px;
+      border-left: 3px solid var(--primary); padding-left: 12px;
+    }
+
+    /* Form Grid Responsive */
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px; }
     
-    .panel { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; backdrop-filter:blur(5px); }
-    .panel h2 { color:var(--primary); margin-bottom:15px; font-size:1.2rem; }
+    label { display:block; color:var(--text-muted); font-size:0.75rem; margin-bottom:8px; font-weight:600; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    /* Form Styles */
-    .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; }
-    label { display:block; color:#86efac; font-size:0.8rem; margin-bottom:5px; font-weight:600; }
-    input, select { width:100%; padding:10px; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:6px; color:white; outline:none; }
-    input:focus, select:focus { border-color:var(--primary); box-shadow:0 0 8px rgba(16,185,129,0.3); }
+    input, select { 
+      width:100%; 
+      padding:12px 15px; 
+      background:rgba(15, 23, 42, 0.8); 
+      border:1px solid var(--border); 
+      border-radius:8px; 
+      color:white; 
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+    input:focus, select:focus { 
+      border-color:var(--primary); 
+      box-shadow:0 0 0 3px rgba(56, 189, 248, 0.15); 
+      outline:none; 
+      background: #1e293b;
+    }
+
+    /* Time Input Group */
+    .time-group { display:flex; gap:8px; }
+    .btn-icon { 
+      padding:0 15px; 
+      background:var(--primary-dim); 
+      border:1px solid var(--primary); 
+      color:var(--primary); 
+      border-radius:8px; 
+      cursor:pointer; 
+      font-weight:bold; 
+      transition: 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-icon:hover { background:var(--primary); color:var(--bg-deep); }
+
+    /* Buttons */
+    .btn { 
+      padding:12px 24px; 
+      border:none; 
+      border-radius:8px; 
+      font-weight:700; 
+      cursor:pointer; 
+      transition:all 0.3s; 
+      text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;
+    }
+    .btn-primary { 
+      background: linear-gradient(135deg, var(--primary), #0284c7); 
+      color:var(--bg-deep); 
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
     
-    .time-group { display:flex; gap:5px; }
-    .btn-icon { padding:0 12px; background:rgba(16,185,129,0.2); border:1px solid var(--primary); color:var(--primary); border-radius:6px; cursor:pointer; font-weight:bold; }
-    .btn-icon:hover { background:var(--primary); color:black; }
+    .btn-export { background: #2563eb; color:white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+    .btn-export:hover { background: #1d4ed8; }
+
+    /* Table Styles for Mobile */
+    .table-wrap { 
+      overflow-x:auto; 
+      margin-top:15px; 
+      border-radius: 12px; 
+      border: 1px solid var(--border);
+      -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
+    }
+    table { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:1000px; }
     
-    .btn { padding:10px 20px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.3s; }
-    .btn-primary { background:var(--primary); color:#000; }
-    .btn-primary:hover { box-shadow:0 0 15px var(--primary); }
-    .btn-export { background:#3b82f6; color:white; }
-    
-    /* Table Styles for Editing */
-    .table-wrap { overflow-x:auto; margin-top:10px; }
-    table { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:1200px; }
-    th { background:rgba(16,185,129,0.1); color:var(--primary); padding:12px; text-align:left; white-space:nowrap; border-bottom: 1px solid var(--border); }
-    td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align: middle; }
-    tr:hover { background:rgba(16,185,129,0.05); }
-    
-    /* Input Fields Inside Table */
+    th { 
+      background:rgba(30, 41, 59, 0.8); 
+      color:var(--primary); 
+      padding:15px; 
+      text-align:left; 
+      white-space:nowrap; 
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem; text-transform: uppercase;
+    }
+    td { 
+      padding:12px 15px; 
+      border-bottom:1px solid var(--border); 
+      vertical-align: middle; 
+      color: var(--text-main);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background:rgba(56, 189, 248, 0.03); }
+
+    /* Editable Inputs in Table */
     .tbl-input { 
       width: 100%; background: transparent; border: 1px solid transparent; 
-      color: var(--text); padding: 6px; border-radius: 4px; font-size: 0.9rem;
+      color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.9rem;
+      transition: 0.2s;
     }
-    .tbl-input:hover { border-color: var(--border); background: rgba(0,0,0,0.3); }
-    .tbl-input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); outline: none; }
+    .tbl-input:hover { border-color: var(--border); background: rgba(255,255,255,0.05); }
+    .tbl-input:focus { border-color: var(--primary); background: rgba(15, 23, 42, 0.9); outline: none; }
+
+    /* Action Buttons in Table */
+    .action-cell { display: flex; gap: 8px; flex-wrap: nowrap; }
+    .btn-stop { 
+      background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); 
+      padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold;
+      white-space: nowrap;
+    }
+    .btn-stop:hover { background: var(--danger); color: white; border-color: var(--danger); }
     
-    /* Badges & Buttons */
-    .badge { padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; display:inline-block; }
-    .b-open { background:rgba(245,158,11,0.2); color:#fcd34d; border:1px solid #f59e0b; }
-    .b-closed { background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid #10b981; }
-    
-    .btn-stop { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-    .btn-stop:hover { background: #ef4444; color: white; }
-    .btn-save-row { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid #10b981; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 5px; }
-    .btn-save-row:hover { background: #10b981; color: black; }
+    .btn-save-row { 
+      background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold;
+      white-space: nowrap;
+    }
+    .btn-save-row:hover { background: var(--primary); color: var(--bg-deep); border-color: var(--primary); }
 
     /* Loading & Toast */
-    #loading { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; display:none; justify-content:center; align-items:center; color:var(--primary); flex-direction:column; }
-    .spinner { width:40px; height:40px; border:4px solid rgba(16,185,129,0.3); border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; }
+    #loading { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.9); z-index:999; display:none; justify-content:center; align-items:center; color:var(--primary); flex-direction:column; backdrop-filter: blur(5px); }
+    .spinner { width:45px; height:45px; border:3px solid rgba(56, 189, 248, 0.2); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
     @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-    .toast { position:fixed; bottom:20px; right:20px; background:var(--primary); color:black; padding:12px 20px; border-radius:8px; font-weight:bold; transform:translateY(100px); transition:0.3s; z-index:1000; }
+    
+    .toast { 
+      position:fixed; bottom:20px; right:20px; 
+      background:var(--bg-panel); border: 1px solid var(--primary); color:var(--primary); 
+      padding:15px 25px; border-radius:10px; font-weight:bold; 
+      transform:translateY(100px); transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      z-index:1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
     .toast.show { transform:translateY(0); }
+
+    /* --- MOBILE OPTIMIZATION --- */
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .header h1 { font-size: 1.4rem; letter-spacing: 1px; }
+      .panel { padding: 20px 15px; border-radius: 12px; }
+      .form-grid { grid-template-columns: 1fr; gap: 15px; } /* Stack form di HP */
+      
+      /* Tabel di HP: Pastikan scroll horizontal terlihat jelas */
+      .table-wrap { 
+        border-radius: 8px; 
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* Efek depth */
+      }
+      th, td { padding: 10px; font-size: 0.85rem; }
+      
+      /* Tombol aksi lebih besar di HP */
+      .btn-stop, .btn-save-row { padding: 8px 12px; font-size: 0.8rem; }
+      
+      /* Input field lebih tinggi di HP */
+      input, select, .tbl-input { padding: 14px; font-size: 16px; } /* Mencegah zoom otomatis di iOS */
+    }
   </style>
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div><div>Menghubungkan ke Spreadsheet...</div></div>
+<div id="loading"><div class="spinner"></div><div>Menghubungkan ke Server...</div></div>
 <div id="toast" class="toast">Notifikasi!</div>
 
 <div class="container">
   <div class="header">
-    <h1>🛰️ NOC DAILY REPORT SYSTEM</h1>
-    <p style="color:#86efac; margin-top:5px;">Eskalasi Gangguan & Auto-Notification</p>
+    <h1>🛰️ NOC DAILY REPORT</h1>
+    <p>ESKALASI GANGGUAN & AUTO-NOTIFICATION SYSTEM</p>
   </div>
 
-  <!-- FORM INPUT BARU -->
+  <!-- FORM INPUT -->
   <div class="panel">
     <h2>➕ Catat Gangguan Baru</h2>
     <form id="formNoc" onsubmit="handleFormSubmit(event)">
       <div class="form-grid">
-        <div><label>Nama Pelanggan *</label><input type="text" id="namaPelanggan" required placeholder="Ketik nama pelanggan..."></div>
+        <div><label>Nama Pelanggan *</label><input type="text" id="namaPelanggan" required placeholder="Contoh: PT ABC"></div>
         <div>
           <label>Waktu Mulai *</label>
           <div class="time-group">
@@ -111,31 +255,31 @@
             <option value="Pending">Pending</option>
           </select>
         </div>
-        <div><label>Nomor Ticket</label><input type="text" id="nomorTicket"></div>
-        <div><label>Kategori</label><input type="text" id="kategori" placeholder="Helpdesk/Maint"></div>
-        <div><label>IP Router</label><input type="text" id="ipRouter"></div>
-        <div><label>Site Metro</label><input type="text" id="siteMetro"></div>
-        <div style="grid-column: 1/-1;"><label>Deskripsi Kendala</label><input type="text" id="deskripsi"></div>
+        <div><label>Nomor Ticket</label><input type="text" id="nomorTicket" placeholder="Opsional"></div>
+        <div><label>Kategori</label><input type="text" id="kategori" placeholder="Helpdesk / Maint"></div>
+        <div><label>IP Router</label><input type="text" id="ipRouter" placeholder="192.168.x.x"></div>
+        <div><label>Site Metro</label><input type="text" id="siteMetro" placeholder="Lokasi Site"></div>
+        <div style="grid-column: 1/-1;"><label>Deskripsi Kendala</label><input type="text" id="deskripsi" placeholder="Detail gangguan..."></div>
       </div>
-      <div style="margin-top:20px; text-align:right;">
-        <button type="submit" class="btn btn-primary">💾 SIMPAN KE SPREADSHEET</button>
+      <div style="margin-top:25px; text-align:right;">
+        <button type="submit" class="btn btn-primary">💾 SIMPAN DATA</button>
       </div>
     </form>
   </div>
 
   <!-- FILTER & EXPORT -->
-  <div class="panel" style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+  <div class="panel" style="display:flex; align-items:flex-end; gap:15px; flex-wrap:wrap;">
     <div style="flex:1; min-width:200px;">
-      <label>Pilih Tanggal:</label>
+      <label>Pilih Tanggal Laporan:</label>
       <input type="date" id="filterDate" onchange="loadDataByDate()">
     </div>
-    <button class="btn btn-export" onclick="exportToExcel()">📥 EXPORT EXCEL</button>
+    <button class="btn btn-export" onclick="exportToExcel()" style="height: 48px;">📥 EXPORT EXCEL</button>
   </div>
 
-  <!-- TABEL DATA EDITABLE LENGKAP -->
+  <!-- TABEL DATA EDITABLE -->
   <div class="panel">
     <h2>📋 Data Gangguan (<span id="dateLabel">Hari Ini</span>)</h2>
-    <p style="font-size:0.8rem; color:#86efac; margin-bottom:10px;">💡 Klik kolom manapun untuk mengedit. Perubahan akan tersimpan saat kamu klik tombol "Simpan" atau "Stop".</p>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">💡 Klik kolom manapun untuk mengedit. Tekan "Simpan" untuk update ke Spreadsheet.</p>
     <div class="table-wrap">
       <table id="dataTable">
         <thead>
@@ -153,7 +297,7 @@
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="10" style="text-align:center; padding:20px;">Memuat data...</td></tr>
+          <tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-muted);">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -199,12 +343,12 @@
       });
   }
 
-  // --- RENDER TABEL DENGAN INPUT FIELD DI SETIAP KOLOM ---
+  // --- RENDER TABEL DENGAN INPUT FIELD ---
   function renderEditableTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px; color:#666;">Tidak ada data.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada tanggal ini.</td></tr>';
       return;
     }
 
@@ -214,17 +358,17 @@
       
       tbody.innerHTML += `
         <tr>
-          <td><input class="tbl-input" value="${item["Nama Pelanggan"]}" onchange="updateLocal(${index}, 'Nama Pelanggan', this.value)"></td>
+          <td><input class="tbl-input" value="${item["Nama Pelanggan"] || ''}" onchange="updateLocal(${index}, 'Nama Pelanggan', this.value)"></td>
           <td><input class="tbl-input" value="${item["Nomor Ticket"] || ''}" onchange="updateLocal(${index}, 'Nomor Ticket', this.value)"></td>
           <td><input class="tbl-input" value="${item["Kategori"] || ''}" onchange="updateLocal(${index}, 'Kategori', this.value)"></td>
           <td><input class="tbl-input" value="${item["Deskripsi Kendala"] || ''}" onchange="updateLocal(${index}, 'Deskripsi Kendala', this.value)"></td>
-          <td>${item["Waktu Mulai"]}</td>
-          <td>${item["Waktu Selesai"] || '-'}</td>
-          <td>${item["Durasi (Menit)"] || '-'}</td>
-          <td><input class="tbl-input" value="${item["Nama NOC"]}" onchange="updateLocal(${index}, 'Nama NOC', this.value)"></td>
+          <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Mulai"]}</td>
+          <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Selesai"] || '-'}</td>
+          <td style="text-align:center;">${item["Durasi (Menit)"] || '-'}</td>
+          <td><input class="tbl-input" value="${item["Nama NOC"] || ''}" onchange="updateLocal(${index}, 'Nama NOC', this.value)"></td>
           
           <td>
-            <select class="tbl-input" onchange="updateLocal(${index}, 'Status', this.value)" style="cursor:pointer;">
+            <select class="tbl-input" onchange="updateLocal(${index}, 'Status', this.value)" style="cursor:pointer; font-weight:bold;">
               <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
               <option value="Closed" ${item["Status"]==='Closed'?'selected':''}>Closed</option>
               <option value="Pending" ${item["Status"]==='Pending'?'selected':''}>Pending</option>
@@ -232,8 +376,10 @@
           </td>
           
           <td>
-            ${stopBtn}
-            <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan</button>
+            <div class="action-cell">
+              ${stopBtn}
+              <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan</button>
+            </div>
           </td>
         </tr>`;
     });
@@ -257,7 +403,7 @@
     
     renderEditableTable(currentData); 
     saveRowUpdate(index);
-    showToast("✅ Gangguan dihentikan & waktu tercatat!");
+    showToast("✅ Gangguan dihentikan!");
   }
 
   // --- KIRIM PERUBAHAN KE SPREADSHEET ---
@@ -278,7 +424,7 @@
     })
     .then(() => {
       document.getElementById('loading').style.display = 'none';
-      showToast("✅ Perubahan tersimpan di Spreadsheet!");
+      showToast("✅ Perubahan tersimpan!");
     })
     .catch(err => {
       document.getElementById('loading').style.display = 'none';
@@ -327,14 +473,13 @@
   function exportToExcel() {
     if (currentData.length === 0) return showToast("Tidak ada data!");
     
-    // Urutan Key ini HARUS sama persis dengan Header Spreadsheet (A-Q)
     const excelData = currentData.map(item => ({
       "Nama Pelanggan": item["Nama Pelanggan"],
       "Nomor Ticket": item["Nomor Ticket"],
       "Kategori": item["Kategori"],
       "Deskripsi Kendala": item["Deskripsi Kendala"],
-      "Waktu Mulai": item["Waktu Mulai"], // Sudah diformat WIB dari backend
-      "Waktu Selesai": item["Waktu Selesai"], // Sudah diformat WIB dari backend
+      "Waktu Mulai": item["Waktu Mulai"],
+      "Waktu Selesai": item["Waktu Selesai"],
       "Durasi (Menit)": item["Durasi (Menit)"],
       "Tindakan Perbaikan": item["Tindakan Perbaikan"],
       "Analisa Kendala": item["Analisa Kendala"],
@@ -354,7 +499,7 @@
     
     const dateVal = document.getElementById('filterDate').value;
     XLSX.writeFile(wb, `NOC_Report_${dateVal}.xlsx`);
-    showToast("📥 Excel terdownload (Format WIB & 17 Kolom)!");
+    showToast("📥 Excel terdownload!");
   }
 
   function checkNotifications() {
@@ -362,7 +507,6 @@
     const now = Date.now();
     currentData.forEach(item => {
       if (item["Status"] === 'Closed') return;
-      // Konversi string waktu kembali ke timestamp untuk perhitungan
       const startTime = new Date(item["Waktu Mulai"]).getTime();
       const minutesPassed = Math.floor((now - startTime) / 60000);
       if (minutesPassed > 0 && minutesPassed % 30 === 0) {
