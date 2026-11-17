@@ -13,7 +13,7 @@
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg-deep); color: var(--text-main); min-height:100vh; padding: 15px; background-image: radial-gradient(circle at top right, #1e3a8a 0%, transparent 40%); }
-    .container { max-width: 1600px; margin: 0 auto; } /* Lebar maksimal diperbesar untuk 17 kolom */
+    .container { max-width: 1600px; margin: 0 auto; }
     
     .header { text-align:center; padding:30px 20px; margin-bottom:30px; border-bottom:1px solid var(--border); position: relative; }
     .header::after { content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%); width: 100px; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
@@ -38,9 +38,9 @@
     .btn-export { background: #2563eb; color:white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
     .btn-export:hover { background: #1d4ed8; }
 
-    /* Table Optimized for Many Columns */
+    /* DESKTOP TABLE STYLES */
     .table-wrap { overflow-x:auto; margin-top:15px; border-radius: 12px; border: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
-    table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:2000px; /* Min-width besar agar 17 kolom muat rapi */ }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:2000px; }
     th { background:rgba(30, 41, 59, 0.8); color:var(--primary); padding:12px; text-align:left; white-space:nowrap; border-bottom: 1px solid var(--border); font-size: 0.75rem; text-transform: uppercase; position: sticky; top: 0; z-index: 10; }
     td { padding:8px; border-bottom:1px solid var(--border); vertical-align: middle; color: var(--text-main); min-width: 100px; }
     tr:last-child td { border-bottom: none; }
@@ -50,11 +50,9 @@
     .tbl-input:hover { border-color: var(--border); background: rgba(255,255,255,0.05); }
     .tbl-input:focus { border-color: var(--primary); background: rgba(15, 23, 42, 0.9); outline: none; }
 
-    .action-cell { display: flex; gap: 5px; flex-wrap: nowrap; }
+    .action-cell { display: flex; gap: 5px; flex-wrap: nowrap; align-items: center; }
     .btn-stop { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
     .btn-stop:hover { background: var(--danger); color: white; border-color: var(--danger); }
-    
-    /* Indikator Auto-Save */
     .saving-indicator { font-size: 0.7rem; color: var(--primary); opacity: 0; transition: opacity 0.3s; margin-left: 5px; }
     .saving-indicator.active { opacity: 1; }
 
@@ -65,15 +63,66 @@
     .toast { position:fixed; bottom:20px; right:20px; background:var(--bg-panel); border: 1px solid var(--primary); color:var(--primary); padding:15px 25px; border-radius:10px; font-weight:bold; transform:translateY(100px); transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index:1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .toast.show { transform:translateY(0); }
 
+    /* --- MOBILE CARD VIEW OPTIMIZATION --- */
     @media (max-width: 768px) {
       body { padding: 10px; }
       .header h1 { font-size: 1.4rem; letter-spacing: 1px; }
-      .panel { padding: 20px 15px; border-radius: 12px; }
+      .panel { padding: 20px 15px; border-radius: 12px; margin-bottom: 15px; }
       .form-grid { grid-template-columns: 1fr; gap: 15px; }
-      .table-wrap { border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-      th, td { padding: 8px; font-size: 0.8rem; }
-      input, select, .tbl-input { padding: 12px; font-size: 16px; }
+      input, select, .tbl-input { padding: 14px; font-size: 16px; } /* Mencegah zoom iOS */
+      
+      /* Sembunyikan Tabel Desktop di HP */
+      .table-wrap { display: none; }
+      
+      /* Tampilkan Container Card di HP */
+      #mobileCardContainer { display: block !important; }
+      
+      /* Styling Kartu Mobile */
+      .data-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      }
+      .card-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+      }
+      .card-title { font-weight: bold; color: var(--primary); font-size: 1rem; }
+      .card-status { 
+        padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; 
+        background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary);
+      }
+      .card-status.Closed { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: #10b981; }
+      .card-status.Open { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: #f59e0b; }
+      
+      .card-field { margin-bottom: 15px; }
+      .card-field label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px; display: block; }
+      .card-field input, .card-field select { 
+        background: rgba(0,0,0,0.2); border: 1px solid var(--border); 
+        padding: 12px; border-radius: 8px; width: 100%; color: white;
+      }
+      .card-field input:focus, .card-field select:focus { border-color: var(--primary); outline: none; }
+      
+      .card-actions { 
+        display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; 
+        border-top: 1px dashed var(--border); 
+      }
+      .card-actions .btn-stop, .card-actions .btn-save-row { 
+        flex: 1; padding: 12px; font-size: 0.85rem; text-align: center; border-radius: 8px; 
+      }
+      .btn-save-row { 
+        background: rgba(56, 189, 248, 0.1); color: var(--primary); 
+        border: 1px solid rgba(56, 189, 248, 0.3); 
+      }
+      .btn-save-row:hover { background: var(--primary); color: var(--bg-deep); }
     }
+    
+    /* Default hidden for mobile container on desktop */
+    #mobileCardContainer { display: none; }
   </style>
 </head>
 <body>
@@ -136,10 +185,10 @@
     <button class="btn btn-export" onclick="exportToExcel()" style="height: 48px;">📥 EXPORT EXCEL</button>
   </div>
 
-  <!-- TABEL DATA FULL EDITABLE (17 KOLOM) -->
+  <!-- TABEL DATA (HANYA UNTUK DESKTOP) -->
   <div class="panel">
     <h2>📋 Data Gangguan (<span id="dateLabel">Hari Ini</span>)</h2>
-    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">💡 Klik kolom manapun untuk mengedit. Data akan tersimpan otomatis 1 detik setelah berhenti mengetik.</p>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">💡 Klik kolom manapun untuk mengedit. Data tersimpan otomatis 1 detik setelah berhenti mengetik.</p>
     <div class="table-wrap">
       <table id="dataTable">
         <thead>
@@ -158,6 +207,10 @@
       </table>
     </div>
   </div>
+
+  <!-- CONTAINER KARTU MOBILE (HANYA MUNCUL DI HP) -->
+  <div id="mobileCardContainer"></div>
+
 </div>
 
 <script>
@@ -190,7 +243,8 @@
       .then(response => response.json())
       .then(data => {
         currentData = data;
-        renderEditableTable(data);
+        renderDesktopTable(data);
+        renderMobileCards(data); // Render kartu untuk HP
         document.getElementById('loading').style.display = 'none';
       })
       .catch(err => {
@@ -199,23 +253,19 @@
       });
   }
 
-  // RENDER TABLE DENGAN DOCUMENTFRAGMENT (OPTIMASI KECEPATAN)
-  function renderEditableTable(data) {
+  // RENDER TABEL DESKTOP
+  function renderDesktopTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
     if (data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada tanggal ini.</td></tr>';
       return;
     }
-
     const fragment = document.createDocumentFragment();
-
     data.forEach((item, index) => {
       const isClosed = item["Status"] === 'Closed';
       const stopBtn = isClosed ? '' : `<button class="btn-stop" onclick="stopIncident(${index})">⏹ Stop</button>`;
-      
       const tr = document.createElement('tr');
-      // Semua 17 kolom sekarang berupa input field
       tr.innerHTML = `
         <td><input class="tbl-input" value="${item["Nama Pelanggan"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Pelanggan', this.value)"></td>
         <td><input class="tbl-input" value="${item["Nomor Ticket"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticket', this.value)"></td>
@@ -249,8 +299,107 @@
       `;
       fragment.appendChild(tr);
     });
-    
     tbody.appendChild(fragment);
+  }
+
+  // RENDER KARTU MOBILE (RESPONSIF & MUDAH DIEDIT)
+  function renderMobileCards(data) {
+    const container = document.getElementById('mobileCardContainer');
+    container.innerHTML = '';
+    
+    if (data.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada tanggal ini.</div>';
+      return;
+    }
+
+    data.forEach((item, index) => {
+      const isClosed = item["Status"] === 'Closed';
+      const stopBtn = isClosed ? '' : `<button class="btn-stop" onclick="stopIncident(${index})">⏹ Hentikan Gangguan</button>`;
+      
+      const card = document.createElement('div');
+      card.className = 'data-card';
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-title">${item["Nama Pelanggan"] || 'Tanpa Nama'}</div>
+          <div class="card-status ${item["Status"]}">${item["Status"]}</div>
+        </div>
+        
+        <div class="card-field">
+          <label>Nomor Ticket</label>
+          <input type="text" value="${item["Nomor Ticket"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticket', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Kategori</label>
+          <input type="text" value="${item["Kategori"] || ''}" onchange="debouncedUpdate(${index}, 'Kategori', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Deskripsi Kendala</label>
+          <input type="text" value="${item["Deskripsi Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Deskripsi Kendala', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Waktu Mulai</label>
+          <input type="text" value="${item["Waktu Mulai"]}" readonly style="opacity:0.7; cursor:not-allowed;">
+        </div>
+        <div class="card-field">
+          <label>Waktu Selesai</label>
+          <input type="text" value="${item["Waktu Selesai"] || '-'}" readonly style="opacity:0.7; cursor:not-allowed;">
+        </div>
+        <div class="card-field">
+          <label>Durasi (Menit)</label>
+          <input type="text" value="${item["Durasi (Menit)"] || '-'}" readonly style="opacity:0.7; cursor:not-allowed;">
+        </div>
+        <div class="card-field">
+          <label>Tindakan Perbaikan</label>
+          <input type="text" value="${item["Tindakan Perbaikan"] || ''}" onchange="debouncedUpdate(${index}, 'Tindakan Perbaikan', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Analisa Kendala</label>
+          <input type="text" value="${item["Analisa Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Analisa Kendala', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Nama Router</label>
+          <input type="text" value="${item["Nama Router"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Router', this.value)">
+        </div>
+        <div class="card-field">
+          <label>IP Router</label>
+          <input type="text" value="${item["IP Router"] || ''}" onchange="debouncedUpdate(${index}, 'IP Router', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Detail Perubahan</label>
+          <input type="text" value="${item["Detail Perubahan"] || ''}" onchange="debouncedUpdate(${index}, 'Detail Perubahan', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Nama NOC</label>
+          <input type="text" value="${item["Nama NOC"] || ''}" onchange="debouncedUpdate(${index}, 'Nama NOC', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Nama Metro</label>
+          <input type="text" value="${item["Nama Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Metro', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Site Metro</label>
+          <input type="text" value="${item["Site Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Site Metro', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Nomor Ticker</label>
+          <input type="text" value="${item["Nomor Ticker"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticker', this.value)">
+        </div>
+        <div class="card-field">
+          <label>Status</label>
+          <select onchange="debouncedUpdate(${index}, 'Status', this.value)">
+            <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
+            <option value="Closed" ${item["Status"]==='Closed'?'selected':''}>Closed</option>
+            <option value="Pending" ${item["Status"]==='Pending'?'selected':''}>Pending</option>
+          </select>
+        </div>
+
+        <div class="card-actions">
+          ${stopBtn}
+          <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan Manual</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
   }
 
   // DEBOUNCED UPDATE (AUTO SAVE SETELAH BERHENTI MENGETIK)
@@ -258,14 +407,14 @@
     currentData[index][field] = value;
     clearTimeout(saveTimeout);
     
-    // Tampilkan indikator menyimpan
+    // Update indikator di desktop jika ada
     const indicator = document.getElementById(`save-ind-${index}`);
     if(indicator) indicator.classList.add('active');
 
     saveTimeout = setTimeout(() => {
       saveRowUpdate(index);
       if(indicator) indicator.classList.remove('active');
-    }, 1000); // Delay 1 detik
+    }, 1000); 
   }
 
   function stopIncident(index) {
@@ -278,7 +427,8 @@
     currentData[index]["Waktu Selesai"] = timeStr;
     currentData[index]["Status"] = "Closed";
     
-    renderEditableTable(currentData); 
+    renderDesktopTable(currentData); 
+    renderMobileCards(currentData); // Refresh tampilan mobile juga
     saveRowUpdate(index);
     showToast("✅ Gangguan dihentikan!");
   }
