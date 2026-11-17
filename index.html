@@ -4,9 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NOC Daily Report System</title>
+  <!-- Library SheetJS untuk Export Excel -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <style>
-    :root { --bg: #050a07; --panel: rgba(16, 30, 20, 0.9); --primary: #10b981; --text: #d4f5dd; --border: rgba(16, 185, 129, 0.3); }
+    :root { 
+      --bg: #050a07; 
+      --panel: rgba(16, 30, 20, 0.9); 
+      --primary: #10b981; 
+      --text: #d4f5dd; 
+      --border: rgba(16, 185, 129, 0.3); 
+    }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height:100vh; }
     .container { max-width: 1400px; margin: 0 auto; }
@@ -171,11 +178,6 @@
     document.getElementById(id).value = now.toISOString().slice(0, 16);
   }
 
-  function fmtDate(str) {
-    if(!str) return '-';
-    return new Date(str).toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
-  }
-
   // --- FUNGSI LOAD DATA ---
   function loadDataByDate() {
     const dateVal = document.getElementById('filterDate').value;
@@ -207,25 +209,25 @@
     }
 
     data.forEach((item, index) => {
-      const isClosed = item.status === 'Closed';
+      const isClosed = item["Status"] === 'Closed';
       const stopBtn = isClosed ? '' : `<button class="btn-stop" onclick="stopIncident(${index})">⏹ Stop</button>`;
       
       tbody.innerHTML += `
         <tr>
-          <td><input class="tbl-input" value="${item.namaPelanggan}" onchange="updateLocal(${index}, 'namaPelanggan', this.value)"></td>
-          <td><input class="tbl-input" value="${item.nomorTicket || ''}" onchange="updateLocal(${index}, 'nomorTicket', this.value)"></td>
-          <td><input class="tbl-input" value="${item.kategori || ''}" onchange="updateLocal(${index}, 'kategori', this.value)"></td>
-          <td><input class="tbl-input" value="${item.deskripsi || ''}" onchange="updateLocal(${index}, 'deskripsi', this.value)"></td>
-          <td>${fmtDate(item.waktuMulai)}</td>
-          <td>${item.waktuSelesai ? fmtDate(item.waktuSelesai) : '-'}</td>
-          <td>${item.durasi || '-'}</td>
-          <td><input class="tbl-input" value="${item.namaNoc}" onchange="updateLocal(${index}, 'namaNoc', this.value)"></td>
+          <td><input class="tbl-input" value="${item["Nama Pelanggan"]}" onchange="updateLocal(${index}, 'Nama Pelanggan', this.value)"></td>
+          <td><input class="tbl-input" value="${item["Nomor Ticket"] || ''}" onchange="updateLocal(${index}, 'Nomor Ticket', this.value)"></td>
+          <td><input class="tbl-input" value="${item["Kategori"] || ''}" onchange="updateLocal(${index}, 'Kategori', this.value)"></td>
+          <td><input class="tbl-input" value="${item["Deskripsi Kendala"] || ''}" onchange="updateLocal(${index}, 'Deskripsi Kendala', this.value)"></td>
+          <td>${item["Waktu Mulai"]}</td>
+          <td>${item["Waktu Selesai"] || '-'}</td>
+          <td>${item["Durasi (Menit)"] || '-'}</td>
+          <td><input class="tbl-input" value="${item["Nama NOC"]}" onchange="updateLocal(${index}, 'Nama NOC', this.value)"></td>
           
           <td>
-            <select class="tbl-input" onchange="updateLocal(${index}, 'status', this.value)" style="cursor:pointer;">
-              <option value="Open" ${item.status==='Open'?'selected':''}>Open</option>
-              <option value="Closed" ${item.status==='Closed'?'selected':''}>Closed</option>
-              <option value="Pending" ${item.status==='Pending'?'selected':''}>Pending</option>
+            <select class="tbl-input" onchange="updateLocal(${index}, 'Status', this.value)" style="cursor:pointer;">
+              <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
+              <option value="Closed" ${item["Status"]==='Closed'?'selected':''}>Closed</option>
+              <option value="Pending" ${item["Status"]==='Pending'?'selected':''}>Pending</option>
             </select>
           </td>
           
@@ -250,8 +252,8 @@
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const timeStr = now.toISOString().slice(0, 16);
     
-    currentData[index].waktuSelesai = timeStr;
-    currentData[index].status = "Closed";
+    currentData[index]["Waktu Selesai"] = timeStr;
+    currentData[index]["Status"] = "Closed";
     
     renderEditableTable(currentData); 
     saveRowUpdate(index);
@@ -321,33 +323,53 @@
     });
   }
 
+  // --- EXPORT EXCEL FULL 17 KOLOM (A-Q) ---
   function exportToExcel() {
     if (currentData.length === 0) return showToast("Tidak ada data!");
+    
+    // Urutan Key ini HARUS sama persis dengan Header Spreadsheet (A-Q)
     const excelData = currentData.map(item => ({
-      "Nama Pelanggan": item.namaPelanggan, "Nomor Ticket": item.nomorTicket,
-      "Kategori": item.kategori, "Deskripsi Kendala": item.deskripsi,
-      "Waktu Mulai": item.waktuMulai, "Waktu Selesai": item.waktuSelesai,
-      "Durasi (Menit)": item.durasi, "Nama NOC": item.namaNoc, "Status": item.status
+      "Nama Pelanggan": item["Nama Pelanggan"],
+      "Nomor Ticket": item["Nomor Ticket"],
+      "Kategori": item["Kategori"],
+      "Deskripsi Kendala": item["Deskripsi Kendala"],
+      "Waktu Mulai": item["Waktu Mulai"], // Sudah diformat WIB dari backend
+      "Waktu Selesai": item["Waktu Selesai"], // Sudah diformat WIB dari backend
+      "Durasi (Menit)": item["Durasi (Menit)"],
+      "Tindakan Perbaikan": item["Tindakan Perbaikan"],
+      "Analisa Kendala": item["Analisa Kendala"],
+      "Nama Router": item["Nama Router"],
+      "IP Router": item["IP Router"],
+      "Detail Perubahan": item["Detail Perubahan"],
+      "Nama NOC": item["Nama NOC"],
+      "Nama Metro": item["Nama Metro"],
+      "Site Metro": item["Site Metro"],
+      "Nomor Ticker": item["Nomor Ticker"],
+      "Status": item["Status"]
     }));
+
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Laporan NOC");
-    XLSX.writeFile(wb, `NOC_Report_${document.getElementById('filterDate').value}.xlsx`);
-    showToast("📥 Excel terdownload!");
+    
+    const dateVal = document.getElementById('filterDate').value;
+    XLSX.writeFile(wb, `NOC_Report_${dateVal}.xlsx`);
+    showToast("📥 Excel terdownload (Format WIB & 17 Kolom)!");
   }
 
   function checkNotifications() {
     if (currentData.length === 0) return;
     const now = Date.now();
     currentData.forEach(item => {
-      if (item.status === 'Closed') return;
-      const startTime = new Date(item.waktuMulai).getTime();
+      if (item["Status"] === 'Closed') return;
+      // Konversi string waktu kembali ke timestamp untuk perhitungan
+      const startTime = new Date(item["Waktu Mulai"]).getTime();
       const minutesPassed = Math.floor((now - startTime) / 60000);
       if (minutesPassed > 0 && minutesPassed % 30 === 0) {
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification(`⚠️ ESKALASI: ${item.namaPelanggan}`, { body: `Sudah ${minutesPassed} menit!` });
+          new Notification(`⚠️ ESKALASI: ${item["Nama Pelanggan"]}`, { body: `Sudah ${minutesPassed} menit!` });
         }
-        showToast(`🔔 Eskalasi: ${item.namaPelanggan}`);
+        showToast(`🔔 Eskalasi: ${item["Nama Pelanggan"]}`);
       }
     });
   }
