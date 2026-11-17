@@ -6,38 +6,58 @@
   <title>NOC Daily Report System</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <style>
-    /* CSS SAMA SEPERTI SEBELUMNYA */
     :root { --bg: #050a07; --panel: rgba(16, 30, 20, 0.9); --primary: #10b981; --text: #d4f5dd; --border: rgba(16, 185, 129, 0.3); }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height:100vh; }
     .container { max-width: 1400px; margin: 0 auto; }
+    
     .header { text-align:center; padding:20px; border-bottom:2px solid var(--primary); margin-bottom:30px; }
     .header h1 { color:var(--primary); letter-spacing:2px; text-shadow:0 0 10px rgba(16,185,129,0.5); }
+    
     .panel { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; backdrop-filter:blur(5px); }
     .panel h2 { color:var(--primary); margin-bottom:15px; font-size:1.2rem; }
+    
+    /* Form Styles */
     .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; }
     label { display:block; color:#86efac; font-size:0.8rem; margin-bottom:5px; font-weight:600; }
     input, select { width:100%; padding:10px; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:6px; color:white; outline:none; }
     input:focus, select:focus { border-color:var(--primary); box-shadow:0 0 8px rgba(16,185,129,0.3); }
+    
     .time-group { display:flex; gap:5px; }
     .btn-icon { padding:0 12px; background:rgba(16,185,129,0.2); border:1px solid var(--primary); color:var(--primary); border-radius:6px; cursor:pointer; font-weight:bold; }
     .btn-icon:hover { background:var(--primary); color:black; }
+    
     .btn { padding:10px 20px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.3s; }
     .btn-primary { background:var(--primary); color:#000; }
     .btn-primary:hover { box-shadow:0 0 15px var(--primary); }
     .btn-export { background:#3b82f6; color:white; }
+    
+    /* Table Styles for Editing */
     .table-wrap { overflow-x:auto; margin-top:10px; }
-    table { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:1000px; }
+    table { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:1200px; }
     th { background:rgba(16,185,129,0.1); color:var(--primary); padding:12px; text-align:left; white-space:nowrap; border-bottom: 1px solid var(--border); }
-    td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+    td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align: middle; }
     tr:hover { background:rgba(16,185,129,0.05); }
-    .badge { padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; }
+    
+    /* Input Fields Inside Table */
+    .tbl-input { 
+      width: 100%; background: transparent; border: 1px solid transparent; 
+      color: var(--text); padding: 6px; border-radius: 4px; font-size: 0.9rem;
+    }
+    .tbl-input:hover { border-color: var(--border); background: rgba(0,0,0,0.3); }
+    .tbl-input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); outline: none; }
+    
+    /* Badges & Buttons */
+    .badge { padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; display:inline-block; }
     .b-open { background:rgba(245,158,11,0.2); color:#fcd34d; border:1px solid #f59e0b; }
     .b-closed { background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid #10b981; }
+    
     .btn-stop { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
     .btn-stop:hover { background: #ef4444; color: white; }
     .btn-save-row { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid #10b981; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 5px; }
     .btn-save-row:hover { background: #10b981; color: black; }
+
+    /* Loading & Toast */
     #loading { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; display:none; justify-content:center; align-items:center; color:var(--primary); flex-direction:column; }
     .spinner { width:40px; height:40px; border:4px solid rgba(16,185,129,0.3); border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; }
     @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
@@ -56,7 +76,7 @@
     <p style="color:#86efac; margin-top:5px;">Eskalasi Gangguan & Auto-Notification</p>
   </div>
 
-  <!-- FORM INPUT -->
+  <!-- FORM INPUT BARU -->
   <div class="panel">
     <h2>➕ Catat Gangguan Baru</h2>
     <form id="formNoc" onsubmit="handleFormSubmit(event)">
@@ -105,16 +125,24 @@
     <button class="btn btn-export" onclick="exportToExcel()">📥 EXPORT EXCEL</button>
   </div>
 
-  <!-- TABEL DATA -->
+  <!-- TABEL DATA EDITABLE LENGKAP -->
   <div class="panel">
     <h2>📋 Data Gangguan (<span id="dateLabel">Hari Ini</span>)</h2>
+    <p style="font-size:0.8rem; color:#86efac; margin-bottom:10px;">💡 Klik kolom manapun untuk mengedit. Perubahan akan tersimpan saat kamu klik tombol "Simpan" atau "Stop".</p>
     <div class="table-wrap">
       <table id="dataTable">
         <thead>
           <tr>
-            <th>A. Pelanggan</th><th>B. Ticket</th><th>C. Kategori</th><th>D. Deskripsi</th>
-            <th>E. Waktu Mulai</th><th>F. Waktu Selesai</th><th>G. Durasi (m)</th>
-            <th>M. Nama NOC</th><th>Q. Status</th><th>Aksi</th>
+            <th>A. Pelanggan</th>
+            <th>B. Ticket</th>
+            <th>C. Kategori</th>
+            <th>D. Deskripsi</th>
+            <th>E. Waktu Mulai</th>
+            <th>F. Waktu Selesai</th>
+            <th>G. Durasi (m)</th>
+            <th>M. Nama NOC</th>
+            <th>Q. Status</th>
+            <th>Aksi</th>
           </tr>
         </thead>
         <tbody id="tableBody">
@@ -126,9 +154,7 @@
 </div>
 
 <script>
-  // URL Web App Kamu
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwU-y2xpepT2w3WPwqv-NBDN5hUMxLAVRcYuKbbnjK1BfsNq2bfCReRhC3qwP8rjBRv2w/exec';
-  
   let currentData = [];
 
   window.onload = function() {
@@ -150,7 +176,7 @@
     return new Date(str).toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
   }
 
-  // --- FUNGSI LOAD DATA (GET) ---
+  // --- FUNGSI LOAD DATA ---
   function loadDataByDate() {
     const dateVal = document.getElementById('filterDate').value;
     if (!dateVal) return;
@@ -162,7 +188,7 @@
       .then(response => response.json())
       .then(data => {
         currentData = data;
-        renderTable(data);
+        renderEditableTable(data);
         document.getElementById('loading').style.display = 'none';
       })
       .catch(err => {
@@ -171,8 +197,8 @@
       });
   }
 
-  // --- RENDER TABEL ---
-  function renderTable(data) {
+  // --- RENDER TABEL DENGAN INPUT FIELD DI SETIAP KOLOM ---
+  function renderEditableTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
     if (data.length === 0) {
@@ -181,33 +207,39 @@
     }
 
     data.forEach((item, index) => {
-      const badgeClass = item.status === 'Closed' ? 'b-closed' : 'b-open';
       const isClosed = item.status === 'Closed';
       const stopBtn = isClosed ? '' : `<button class="btn-stop" onclick="stopIncident(${index})">⏹ Stop</button>`;
       
       tbody.innerHTML += `
         <tr>
-          <td>${item.namaPelanggan}</td>
-          <td>${item.nomorTicket || '-'}</td>
-          <td>${item.kategori || '-'}</td>
-          <td>${item.deskripsi || '-'}</td>
+          <td><input class="tbl-input" value="${item.namaPelanggan}" onchange="updateLocal(${index}, 'namaPelanggan', this.value)"></td>
+          <td><input class="tbl-input" value="${item.nomorTicket || ''}" onchange="updateLocal(${index}, 'nomorTicket', this.value)"></td>
+          <td><input class="tbl-input" value="${item.kategori || ''}" onchange="updateLocal(${index}, 'kategori', this.value)"></td>
+          <td><input class="tbl-input" value="${item.deskripsi || ''}" onchange="updateLocal(${index}, 'deskripsi', this.value)"></td>
           <td>${fmtDate(item.waktuMulai)}</td>
           <td>${item.waktuSelesai ? fmtDate(item.waktuSelesai) : '-'}</td>
           <td>${item.durasi || '-'}</td>
-          <td style="color:var(--primary); font-weight:bold;">${item.namaNoc}</td>
+          <td><input class="tbl-input" value="${item.namaNoc}" onchange="updateLocal(${index}, 'namaNoc', this.value)"></td>
+          
           <td>
-            <select class="table-select" id="status-${index}" onchange="updateRowLocally(${index})" style="background:transparent; color:white; border:1px solid #333; padding:5px; border-radius:4px;">
+            <select class="tbl-input" onchange="updateLocal(${index}, 'status', this.value)" style="cursor:pointer;">
               <option value="Open" ${item.status==='Open'?'selected':''}>Open</option>
               <option value="Closed" ${item.status==='Closed'?'selected':''}>Closed</option>
               <option value="Pending" ${item.status==='Pending'?'selected':''}>Pending</option>
             </select>
           </td>
+          
           <td>
             ${stopBtn}
             <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan</button>
           </td>
         </tr>`;
     });
+  }
+
+  // --- UPDATE DATA LOKAL SAAT USER MENGETIK ---
+  function updateLocal(index, field, value) {
+    currentData[index][field] = value;
   }
 
   // --- FUNGSI STOP OTOMATIS ---
@@ -221,18 +253,12 @@
     currentData[index].waktuSelesai = timeStr;
     currentData[index].status = "Closed";
     
-    document.getElementById(`status-${index}`).value = "Closed";
-    renderTable(currentData); 
+    renderEditableTable(currentData); 
     saveRowUpdate(index);
-    showToast("✅ Gangguan dihentikan!");
+    showToast("✅ Gangguan dihentikan & waktu tercatat!");
   }
 
-  function updateRowLocally(index) {
-    const newStatus = document.getElementById(`status-${index}`).value;
-    currentData[index].status = newStatus;
-  }
-
-  // --- FUNGSI SIMPAN UPDATE BARIS (POST) ---
+  // --- KIRIM PERUBAHAN KE SPREADSHEET ---
   function saveRowUpdate(index) {
     const item = currentData[index];
     document.getElementById('loading').style.display = 'flex';
@@ -244,14 +270,13 @@
 
     fetch(WEB_APP_URL, {
       method: 'POST',
-      mode: 'no-cors', // Penting untuk menghindari error CORS di browser
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
     .then(() => {
-      // Karena no-cors, kita tidak bisa baca response JSON, jadi anggap sukses jika tidak error network
       document.getElementById('loading').style.display = 'none';
-      showToast("✅ Perubahan tersimpan!");
+      showToast("✅ Perubahan tersimpan di Spreadsheet!");
     })
     .catch(err => {
       document.getElementById('loading').style.display = 'none';
@@ -259,7 +284,7 @@
     });
   }
 
-  // --- FUNGSI SIMPAN DATA BARU (POST) ---
+  // --- SIMPAN DATA BARU ---
   function handleFormSubmit(e) {
     e.preventDefault();
     document.getElementById('loading').style.display = 'flex';
