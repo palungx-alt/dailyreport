@@ -6,15 +6,14 @@
   <title>NOC Daily Report System</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <style>
-    /* --- FUTURISTIC BLUE THEME OPTIMIZED --- */
     :root { 
       --bg-deep: #020617; --bg-panel: #0f172a; --primary: #38bdf8; 
       --primary-dim: rgba(56, 189, 248, 0.1); --text-main: #e2e8f0; 
-      --text-muted: #94a3b8; --border: #1e293b; --danger: #ef4444; --success: #10b981;
+      --text-muted: #94a3b8; --border: #1e293b; --danger: #ef4444;
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg-deep); color: var(--text-main); min-height:100vh; padding: 15px; background-image: radial-gradient(circle at top right, #1e3a8a 0%, transparent 40%); }
-    .container { max-width: 1400px; margin: 0 auto; }
+    .container { max-width: 1600px; margin: 0 auto; } /* Lebar maksimal diperbesar untuk 17 kolom */
     
     .header { text-align:center; padding:30px 20px; margin-bottom:30px; border-bottom:1px solid var(--border); position: relative; }
     .header::after { content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%); width: 100px; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
@@ -39,22 +38,25 @@
     .btn-export { background: #2563eb; color:white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
     .btn-export:hover { background: #1d4ed8; }
 
+    /* Table Optimized for Many Columns */
     .table-wrap { overflow-x:auto; margin-top:15px; border-radius: 12px; border: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
-    table { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:1000px; }
-    th { background:rgba(30, 41, 59, 0.8); color:var(--primary); padding:15px; text-align:left; white-space:nowrap; border-bottom: 1px solid var(--border); font-size: 0.8rem; text-transform: uppercase; }
-    td { padding:12px 15px; border-bottom:1px solid var(--border); vertical-align: middle; color: var(--text-main); }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:2000px; /* Min-width besar agar 17 kolom muat rapi */ }
+    th { background:rgba(30, 41, 59, 0.8); color:var(--primary); padding:12px; text-align:left; white-space:nowrap; border-bottom: 1px solid var(--border); font-size: 0.75rem; text-transform: uppercase; position: sticky; top: 0; z-index: 10; }
+    td { padding:8px; border-bottom:1px solid var(--border); vertical-align: middle; color: var(--text-main); min-width: 100px; }
     tr:last-child td { border-bottom: none; }
     tr:hover { background:rgba(56, 189, 248, 0.03); }
 
-    .tbl-input { width: 100%; background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.9rem; transition: 0.2s; }
+    .tbl-input { width: 100%; background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 6px 8px; border-radius: 4px; font-size: 0.85rem; transition: 0.2s; }
     .tbl-input:hover { border-color: var(--border); background: rgba(255,255,255,0.05); }
     .tbl-input:focus { border-color: var(--primary); background: rgba(15, 23, 42, 0.9); outline: none; }
 
-    .action-cell { display: flex; gap: 8px; flex-wrap: nowrap; }
-    .btn-stop { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
+    .action-cell { display: flex; gap: 5px; flex-wrap: nowrap; }
+    .btn-stop { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
     .btn-stop:hover { background: var(--danger); color: white; border-color: var(--danger); }
-    .btn-save-row { background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
-    .btn-save-row:hover { background: var(--primary); color: var(--bg-deep); border-color: var(--primary); }
+    
+    /* Indikator Auto-Save */
+    .saving-indicator { font-size: 0.7rem; color: var(--primary); opacity: 0; transition: opacity 0.3s; margin-left: 5px; }
+    .saving-indicator.active { opacity: 1; }
 
     #loading { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.9); z-index:999; display:none; justify-content:center; align-items:center; color:var(--primary); flex-direction:column; backdrop-filter: blur(5px); }
     .spinner { width:45px; height:45px; border:3px solid rgba(56, 189, 248, 0.2); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
@@ -69,9 +71,8 @@
       .panel { padding: 20px 15px; border-radius: 12px; }
       .form-grid { grid-template-columns: 1fr; gap: 15px; }
       .table-wrap { border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-      th, td { padding: 10px; font-size: 0.85rem; }
-      .btn-stop, .btn-save-row { padding: 8px 12px; font-size: 0.8rem; }
-      input, select, .tbl-input { padding: 14px; font-size: 16px; }
+      th, td { padding: 8px; font-size: 0.8rem; }
+      input, select, .tbl-input { padding: 12px; font-size: 16px; }
     }
   </style>
 </head>
@@ -86,7 +87,7 @@
     <p>ESKALASI GANGGUAN & AUTO-NOTIFICATION SYSTEM</p>
   </div>
 
-  <!-- FORM INPUT -->
+  <!-- FORM INPUT BARU -->
   <div class="panel">
     <h2>➕ Catat Gangguan Baru</h2>
     <form id="formNoc" onsubmit="handleFormSubmit(event)">
@@ -135,28 +136,24 @@
     <button class="btn btn-export" onclick="exportToExcel()" style="height: 48px;">📥 EXPORT EXCEL</button>
   </div>
 
-  <!-- TABEL DATA EDITABLE -->
+  <!-- TABEL DATA FULL EDITABLE (17 KOLOM) -->
   <div class="panel">
     <h2>📋 Data Gangguan (<span id="dateLabel">Hari Ini</span>)</h2>
-    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">💡 Klik kolom manapun untuk mengedit. Tekan "Simpan" untuk update ke Spreadsheet.</p>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;">💡 Klik kolom manapun untuk mengedit. Data akan tersimpan otomatis 1 detik setelah berhenti mengetik.</p>
     <div class="table-wrap">
       <table id="dataTable">
         <thead>
           <tr>
-            <th>A. Pelanggan</th>
-            <th>B. Ticket</th>
-            <th>C. Kategori</th>
-            <th>D. Deskripsi</th>
-            <th>E. Waktu Mulai</th>
-            <th>F. Waktu Selesai</th>
-            <th>G. Durasi (m)</th>
-            <th>M. Nama NOC</th>
-            <th>Q. Status</th>
-            <th>Aksi</th>
+            <th>A. Pelanggan</th><th>B. Ticket</th><th>C. Kategori</th><th>D. Deskripsi</th>
+            <th>E. Waktu Mulai</th><th>F. Waktu Selesai</th><th>G. Durasi (m)</th>
+            <th>H. Tindakan</th><th>I. Analisa</th><th>J. Nama Router</th>
+            <th>K. IP Router</th><th>L. Detail Perubahan</th><th>M. Nama NOC</th>
+            <th>N. Nama Metro</th><th>O. Site Metro</th><th>P. Nomor Ticker</th>
+            <th>Q. Status</th><th>Aksi</th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-muted);">Memuat data...</td></tr>
+          <tr><td colspan="18" style="text-align:center; padding:30px; color:var(--text-muted);">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -166,7 +163,7 @@
 <script>
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwU-y2xpepT2w3WPwqv-NBDN5hUMxLAVRcYuKbbnjK1BfsNq2bfCReRhC3qwP8rjBRv2w/exec';
   let currentData = [];
-  let saveTimeout = null; // Untuk debouncing
+  let saveTimeout = null; 
 
   window.onload = function() {
     const today = new Date().toISOString().split('T')[0];
@@ -182,7 +179,6 @@
     document.getElementById(id).value = now.toISOString().slice(0, 16);
   }
 
-  // --- FUNGSI LOAD DATA (Hanya dipanggil saat ganti tanggal) ---
   function loadDataByDate() {
     const dateVal = document.getElementById('filterDate').value;
     if (!dateVal) return;
@@ -203,16 +199,15 @@
       });
   }
 
-  // --- RENDER TABEL DENGAN OPTIMASI ---
+  // RENDER TABLE DENGAN DOCUMENTFRAGMENT (OPTIMASI KECEPATAN)
   function renderEditableTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada tanggal ini.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada tanggal ini.</td></tr>';
       return;
     }
 
-    // Gunakan DocumentFragment untuk rendering lebih cepat
     const fragment = document.createDocumentFragment();
 
     data.forEach((item, index) => {
@@ -220,6 +215,7 @@
       const stopBtn = isClosed ? '' : `<button class="btn-stop" onclick="stopIncident(${index})">⏹ Stop</button>`;
       
       const tr = document.createElement('tr');
+      // Semua 17 kolom sekarang berupa input field
       tr.innerHTML = `
         <td><input class="tbl-input" value="${item["Nama Pelanggan"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Pelanggan', this.value)"></td>
         <td><input class="tbl-input" value="${item["Nomor Ticket"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticket', this.value)"></td>
@@ -228,7 +224,15 @@
         <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Mulai"]}</td>
         <td style="white-space:nowrap; color:var(--text-muted);">${item["Waktu Selesai"] || '-'}</td>
         <td style="text-align:center;">${item["Durasi (Menit)"] || '-'}</td>
+        <td><input class="tbl-input" value="${item["Tindakan Perbaikan"] || ''}" onchange="debouncedUpdate(${index}, 'Tindakan Perbaikan', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Analisa Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Analisa Kendala', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Nama Router"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Router', this.value)"></td>
+        <td><input class="tbl-input" value="${item["IP Router"] || ''}" onchange="debouncedUpdate(${index}, 'IP Router', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Detail Perubahan"] || ''}" onchange="debouncedUpdate(${index}, 'Detail Perubahan', this.value)"></td>
         <td><input class="tbl-input" value="${item["Nama NOC"] || ''}" onchange="debouncedUpdate(${index}, 'Nama NOC', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Nama Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Metro', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Site Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Site Metro', this.value)"></td>
+        <td><input class="tbl-input" value="${item["Nomor Ticker"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticker', this.value)"></td>
         <td>
           <select class="tbl-input" onchange="debouncedUpdate(${index}, 'Status', this.value)" style="cursor:pointer; font-weight:bold;">
             <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
@@ -239,7 +243,7 @@
         <td>
           <div class="action-cell">
             ${stopBtn}
-            <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan</button>
+            <span class="saving-indicator" id="save-ind-${index}">💾 Menyimpan...</span>
           </div>
         </td>
       `;
@@ -249,17 +253,21 @@
     tbody.appendChild(fragment);
   }
 
-  // --- DEBOUNCED UPDATE (Mencegah spam request saat mengetik) ---
+  // DEBOUNCED UPDATE (AUTO SAVE SETELAH BERHENTI MENGETIK)
   function debouncedUpdate(index, field, value) {
     currentData[index][field] = value;
     clearTimeout(saveTimeout);
-    // Otomatis simpan setelah user berhenti mengetik selama 1 detik
+    
+    // Tampilkan indikator menyimpan
+    const indicator = document.getElementById(`save-ind-${index}`);
+    if(indicator) indicator.classList.add('active');
+
     saveTimeout = setTimeout(() => {
-      saveRowUpdate(index, true); 
-    }, 1000);
+      saveRowUpdate(index);
+      if(indicator) indicator.classList.remove('active');
+    }, 1000); // Delay 1 detik
   }
 
-  // --- FUNGSI STOP OTOMATIS (Instant UI Update) ---
   function stopIncident(index) {
     if(!confirm("Yakin ingin menghentikan gangguan ini?")) return;
     
@@ -267,7 +275,6 @@
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const timeStr = now.toISOString().slice(0, 16);
     
-    // Update lokal INSTAN sebelum kirim ke server
     currentData[index]["Waktu Selesai"] = timeStr;
     currentData[index]["Status"] = "Closed";
     
@@ -276,30 +283,16 @@
     showToast("✅ Gangguan dihentikan!");
   }
 
-  // --- KIRIM PERUBAHAN KE SPREADSHEET ---
-  function saveRowUpdate(index, isAutoSave = false) {
+  function saveRowUpdate(index) {
     const item = currentData[index];
-    if (!isAutoSave) document.getElementById('loading').style.display = 'flex';
-    
     const payload = { action: 'updateData', rowData: item };
 
     fetch(WEB_APP_URL, {
       method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    })
-    .then(() => {
-      if (!isAutoSave) document.getElementById('loading').style.display = 'none';
-      if (!isAutoSave) showToast("✅ Perubahan tersimpan!");
-    })
-    .catch(err => {
-      if (!isAutoSave) {
-        document.getElementById('loading').style.display = 'none';
-        showToast("Error koneksi");
-      }
-    });
+    }).catch(err => console.error("Save error:", err));
   }
 
-  // --- SIMPAN DATA BARU ---
   function handleFormSubmit(e) {
     e.preventDefault();
     document.getElementById('loading').style.display = 'flex';
@@ -315,7 +308,8 @@
       namaNoc: document.getElementById('namaNoc').value,
       status: document.getElementById('status').value,
       ipRouter: document.getElementById('ipRouter').value,
-      siteMetro: document.getElementById('siteMetro').value
+      siteMetro: document.getElementById('siteMetro').value,
+      tindakan: "", analisa: "", namaRouter: "", detailPerubahan: "", namaMetro: "", nomorTicker: ""
     };
 
     fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -331,7 +325,6 @@
     });
   }
 
-  // --- EXPORT EXCEL FULL 17 KOLOM (A-Q) ---
   function exportToExcel() {
     if (currentData.length === 0) return showToast("Tidak ada data!");
     
