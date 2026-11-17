@@ -74,69 +74,27 @@
       .table-wrap { display: none; }
       #mobileCardContainer { display: block !important; }
       
-      /* Accordion Card Styles */
-      .data-card {
-        background: var(--bg-panel);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        margin-bottom: 12px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-      }
-      
-      /* Header Kartu (Selalu Terlihat) */
-      .card-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 16px 20px; cursor: pointer; user-select: none;
-        background: rgba(30, 41, 59, 0.5);
-      }
+      .data-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; transition: all 0.3s ease; }
+      .card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; user-select: none; background: rgba(30, 41, 59, 0.5); }
       .card-header:active { background: rgba(56, 189, 248, 0.1); }
-      
       .card-title-area { display: flex; flex-direction: column; gap: 4px; }
       .card-customer { font-weight: bold; color: var(--text-main); font-size: 1rem; }
       .card-time { font-size: 0.75rem; color: var(--text-muted); }
-      
-      .card-status-badge { 
-        padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; 
-        background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary);
-        white-space: nowrap;
-      }
+      .card-status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary); white-space: nowrap; }
       .card-status-badge.Closed { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: #10b981; }
       .card-status-badge.Open { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: #f59e0b; }
       
-      /* Body Kartu (Tersembunyi Default) */
-      .card-body {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        background: var(--bg-panel);
-      }
-      
-      .card-body.open {
-        max-height: 2000px; /* Cukup besar untuk menampung semua field */
-        padding: 20px;
-        border-top: 1px solid var(--border);
-      }
-      
+      .card-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: var(--bg-panel); }
+      .card-body.open { max-height: 2000px; padding: 20px; border-top: 1px solid var(--border); }
       .card-field { margin-bottom: 16px; }
       .card-field label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px; display: block; text-transform: uppercase; }
-      .card-field input, .card-field select { 
-        background: rgba(0,0,0,0.3); border: 1px solid var(--border); 
-        padding: 12px; border-radius: 8px; width: 100%; color: white;
-      }
+      .card-field input, .card-field select { background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; color: white; }
       .card-field input:focus, .card-field select:focus { border-color: var(--primary); outline: none; }
-      
-      .card-actions { 
-        display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; 
-        border-top: 1px dashed var(--border); 
-      }
-      .card-actions button { 
-        flex: 1; padding: 14px; font-size: 0.85rem; text-align: center; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;
-      }
+      .card-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); }
+      .card-actions button { flex: 1; padding: 14px; font-size: 0.85rem; text-align: center; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
       .btn-save-row { background: var(--primary); color: var(--bg-deep); }
       .btn-stop-card { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3) !important; }
     }
-    
     #mobileCardContainer { display: none; }
   </style>
 </head>
@@ -191,11 +149,15 @@
     </form>
   </div>
 
-  <!-- FILTER & EXPORT -->
+  <!-- FILTER RANGE TANGGAL & EXPORT -->
   <div class="panel" style="display:flex; align-items:flex-end; gap:15px; flex-wrap:wrap;">
-    <div style="flex:1; min-width:200px;">
-      <label>Pilih Tanggal Laporan:</label>
-      <input type="date" id="filterDate" onchange="loadDataByDate()">
+    <div style="flex:1; min-width:150px;">
+      <label>Dari Tanggal:</label>
+      <input type="date" id="startDate">
+    </div>
+    <div style="flex:1; min-width:150px;">
+      <label>Sampai Tanggal:</label>
+      <input type="date" id="endDate">
     </div>
     <button class="btn btn-export" onclick="exportToExcel()" style="height: 48px;">📥 EXPORT EXCEL</button>
   </div>
@@ -234,11 +196,18 @@
   let saveTimeout = null; 
 
   window.onload = function() {
+    // Set default range ke hari ini
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('filterDate').value = today;
+    document.getElementById('startDate').value = today;
+    document.getElementById('endDate').value = today;
+    
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-    loadDataByDate();
+    loadDataByRange();
     setInterval(checkNotifications, 60000); 
+    
+    // Auto load saat salah satu tanggal berubah
+    document.getElementById('startDate').addEventListener('change', loadDataByRange);
+    document.getElementById('endDate').addEventListener('change', loadDataByRange);
   };
 
   function setNow(id) {
@@ -247,14 +216,17 @@
     document.getElementById(id).value = now.toISOString().slice(0, 16);
   }
 
-  function loadDataByDate() {
-    const dateVal = document.getElementById('filterDate').value;
-    if (!dateVal) return;
+  // LOAD DATA BERDASARKAN RANGE
+  function loadDataByRange() {
+    const startVal = document.getElementById('startDate').value;
+    const endVal = document.getElementById('endDate').value;
+    
+    if (!startVal || !endVal) return;
     
     document.getElementById('loading').style.display = 'flex';
-    document.getElementById('dateLabel').innerText = dateVal;
+    document.getElementById('dateLabel').innerText = `${startVal} s/d ${endVal}`;
 
-    fetch(`${WEB_APP_URL}?action=getData&date=${dateVal}`)
+    fetch(`${WEB_APP_URL}?action=getData&startDate=${startVal}&endDate=${endVal}`)
       .then(response => response.json())
       .then(data => {
         currentData = data;
@@ -273,7 +245,7 @@
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada tanggal ini.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada rentang tanggal ini.</td></tr>';
       return;
     }
     const fragment = document.createDocumentFragment();
@@ -323,7 +295,7 @@
     container.innerHTML = '';
     
     if (data.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada tanggal ini.</div>';
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">Tidak ada data pada rentang tanggal ini.</div>';
       return;
     }
 
@@ -331,7 +303,6 @@
       const card = document.createElement('div');
       card.className = 'data-card';
       
-      // Header Kartu (Selalu Terlihat)
       const headerHTML = `
         <div class="card-header" onclick="toggleCard(this)">
           <div class="card-title-area">
@@ -342,7 +313,6 @@
         </div>
       `;
 
-      // Body Kartu (Tersembunyi, Berisi Semua Input)
       const bodyHTML = `
         <div class="card-body">
           <div class="card-field"><label>Nomor Ticket</label><input type="text" value="${item["Nomor Ticket"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticket', this.value)"></div>
@@ -377,20 +347,16 @@
     });
   }
 
-  // FUNGSI TOGGLE ACCORDION
   function toggleCard(headerElement) {
     const body = headerElement.nextElementSibling;
     body.classList.toggle('open');
   }
 
-  // DEBOUNCED UPDATE (AUTO SAVE)
   function debouncedUpdate(index, field, value) {
     currentData[index][field] = value;
     clearTimeout(saveTimeout);
-    
     const indicator = document.getElementById(`save-ind-${index}`);
     if(indicator) indicator.classList.add('active');
-
     saveTimeout = setTimeout(() => {
       saveRowUpdate(index);
       if(indicator) indicator.classList.remove('active');
@@ -399,14 +365,11 @@
 
   function stopIncident(index) {
     if(!confirm("Yakin ingin menghentikan gangguan ini?")) return;
-    
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const timeStr = now.toISOString().slice(0, 16);
-    
     currentData[index]["Waktu Selesai"] = timeStr;
     currentData[index]["Status"] = "Closed";
-    
     renderDesktopTable(currentData); 
     renderMobileCards(currentData); 
     saveRowUpdate(index);
@@ -416,38 +379,27 @@
   function saveRowUpdate(index) {
     const item = currentData[index];
     const payload = { action: 'updateData', rowData: item };
-
-    fetch(WEB_APP_URL, {
-      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(err => console.error("Save error:", err));
+    fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    .catch(err => console.error("Save error:", err));
   }
 
   function handleFormSubmit(e) {
     e.preventDefault();
     document.getElementById('loading').style.display = 'flex';
-    
     const payload = {
-      action: 'saveData',
-      namaPelanggan: document.getElementById('namaPelanggan').value,
-      nomorTicket: document.getElementById('nomorTicket').value,
-      kategori: document.getElementById('kategori').value,
-      deskripsi: document.getElementById('deskripsi').value,
-      waktuMulai: document.getElementById('waktuMulai').value,
-      waktuSelesai: document.getElementById('waktuSelesai').value,
-      namaNoc: document.getElementById('namaNoc').value,
-      status: document.getElementById('status').value,
-      ipRouter: document.getElementById('ipRouter').value,
-      siteMetro: document.getElementById('siteMetro').value,
-      tindakan: "", analisa: "", namaRouter: "", detailPerubahan: "", namaMetro: "", nomorTicker: ""
+      action: 'saveData', namaPelanggan: document.getElementById('namaPelanggan').value,
+      nomorTicket: document.getElementById('nomorTicket').value, kategori: document.getElementById('kategori').value,
+      deskripsi: document.getElementById('deskripsi').value, waktuMulai: document.getElementById('waktuMulai').value,
+      waktuSelesai: document.getElementById('waktuSelesai').value, namaNoc: document.getElementById('namaNoc').value,
+      status: document.getElementById('status').value, ipRouter: document.getElementById('ipRouter').value,
+      siteMetro: document.getElementById('siteMetro').value, tindakan: "", analisa: "", namaRouter: "", detailPerubahan: "", namaMetro: "", nomorTicker: ""
     };
-
     fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     .then(() => {
       document.getElementById('loading').style.display = 'none';
       showToast("✅ Data baru tersimpan!");
       document.getElementById('formNoc').reset();
-      loadDataByDate(); 
+      loadDataByRange(); 
     })
     .catch(err => {
       document.getElementById('loading').style.display = 'none';
@@ -457,7 +409,6 @@
 
   function exportToExcel() {
     if (currentData.length === 0) return showToast("Tidak ada data!");
-    
     const excelData = currentData.map(item => ({
       "Nama Pelanggan": item["Nama Pelanggan"], "Nomor Ticket": item["Nomor Ticket"],
       "Kategori": item["Kategori"], "Deskripsi Kendala": item["Deskripsi Kendala"],
@@ -469,12 +420,12 @@
       "Site Metro": item["Site Metro"], "Nomor Ticker": item["Nomor Ticker"],
       "Status": item["Status"]
     }));
-
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Laporan NOC");
-    const dateVal = document.getElementById('filterDate').value;
-    XLSX.writeFile(wb, `NOC_Report_${dateVal}.xlsx`);
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    XLSX.writeFile(wb, `NOC_Report_${start}_to_${end}.xlsx`);
     showToast("📥 Excel terdownload!");
   }
 
