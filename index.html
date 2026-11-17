@@ -63,46 +63,65 @@
     .toast { position:fixed; bottom:20px; right:20px; background:var(--bg-panel); border: 1px solid var(--primary); color:var(--primary); padding:15px 25px; border-radius:10px; font-weight:bold; transform:translateY(100px); transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index:1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .toast.show { transform:translateY(0); }
 
-    /* --- MOBILE CARD VIEW OPTIMIZATION --- */
+    /* --- MOBILE ACCORDION OPTIMIZATION --- */
     @media (max-width: 768px) {
       body { padding: 10px; }
       .header h1 { font-size: 1.4rem; letter-spacing: 1px; }
       .panel { padding: 20px 15px; border-radius: 12px; margin-bottom: 15px; }
       .form-grid { grid-template-columns: 1fr; gap: 15px; }
-      input, select, .tbl-input { padding: 14px; font-size: 16px; } /* Mencegah zoom iOS */
+      input, select, .tbl-input { padding: 14px; font-size: 16px; } 
       
-      /* Sembunyikan Tabel Desktop di HP */
       .table-wrap { display: none; }
-      
-      /* Tampilkan Container Card di HP */
       #mobileCardContainer { display: block !important; }
       
-      /* Styling Kartu Mobile */
+      /* Accordion Card Styles */
       .data-card {
         background: var(--bg-panel);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 15px;
-        position: relative;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        margin-bottom: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
       }
+      
+      /* Header Kartu (Selalu Terlihat) */
       .card-header {
         display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+        padding: 16px 20px; cursor: pointer; user-select: none;
+        background: rgba(30, 41, 59, 0.5);
       }
-      .card-title { font-weight: bold; color: var(--primary); font-size: 1rem; }
-      .card-status { 
-        padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; 
-        background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary);
-      }
-      .card-status.Closed { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: #10b981; }
-      .card-status.Open { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: #f59e0b; }
+      .card-header:active { background: rgba(56, 189, 248, 0.1); }
       
-      .card-field { margin-bottom: 15px; }
-      .card-field label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px; display: block; }
+      .card-title-area { display: flex; flex-direction: column; gap: 4px; }
+      .card-customer { font-weight: bold; color: var(--text-main); font-size: 1rem; }
+      .card-time { font-size: 0.75rem; color: var(--text-muted); }
+      
+      .card-status-badge { 
+        padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; 
+        background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary);
+        white-space: nowrap;
+      }
+      .card-status-badge.Closed { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: #10b981; }
+      .card-status-badge.Open { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: #f59e0b; }
+      
+      /* Body Kartu (Tersembunyi Default) */
+      .card-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--bg-panel);
+      }
+      
+      .card-body.open {
+        max-height: 2000px; /* Cukup besar untuk menampung semua field */
+        padding: 20px;
+        border-top: 1px solid var(--border);
+      }
+      
+      .card-field { margin-bottom: 16px; }
+      .card-field label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px; display: block; text-transform: uppercase; }
       .card-field input, .card-field select { 
-        background: rgba(0,0,0,0.2); border: 1px solid var(--border); 
+        background: rgba(0,0,0,0.3); border: 1px solid var(--border); 
         padding: 12px; border-radius: 8px; width: 100%; color: white;
       }
       .card-field input:focus, .card-field select:focus { border-color: var(--primary); outline: none; }
@@ -111,17 +130,13 @@
         display: flex; gap: 10px; margin-top: 20px; padding-top: 15px; 
         border-top: 1px dashed var(--border); 
       }
-      .card-actions .btn-stop, .card-actions .btn-save-row { 
-        flex: 1; padding: 12px; font-size: 0.85rem; text-align: center; border-radius: 8px; 
+      .card-actions button { 
+        flex: 1; padding: 14px; font-size: 0.85rem; text-align: center; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;
       }
-      .btn-save-row { 
-        background: rgba(56, 189, 248, 0.1); color: var(--primary); 
-        border: 1px solid rgba(56, 189, 248, 0.3); 
-      }
-      .btn-save-row:hover { background: var(--primary); color: var(--bg-deep); }
+      .btn-save-row { background: var(--primary); color: var(--bg-deep); }
+      .btn-stop-card { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3) !important; }
     }
     
-    /* Default hidden for mobile container on desktop */
     #mobileCardContainer { display: none; }
   </style>
 </head>
@@ -208,7 +223,7 @@
     </div>
   </div>
 
-  <!-- CONTAINER KARTU MOBILE (HANYA MUNCUL DI HP) -->
+  <!-- CONTAINER ACCORDION MOBILE -->
   <div id="mobileCardContainer"></div>
 
 </div>
@@ -244,7 +259,7 @@
       .then(data => {
         currentData = data;
         renderDesktopTable(data);
-        renderMobileCards(data); // Render kartu untuk HP
+        renderMobileCards(data);
         document.getElementById('loading').style.display = 'none';
       })
       .catch(err => {
@@ -302,7 +317,7 @@
     tbody.appendChild(fragment);
   }
 
-  // RENDER KARTU MOBILE (RESPONSIF & MUDAH DIEDIT)
+  // RENDER ACCORDION CARDS MOBILE
   function renderMobileCards(data) {
     const container = document.getElementById('mobileCardContainer');
     container.innerHTML = '';
@@ -313,101 +328,66 @@
     }
 
     data.forEach((item, index) => {
-      const isClosed = item["Status"] === 'Closed';
-      const stopBtn = isClosed ? '' : `<button class="btn-stop" onclick="stopIncident(${index})">⏹ Hentikan Gangguan</button>`;
-      
       const card = document.createElement('div');
       card.className = 'data-card';
-      card.innerHTML = `
-        <div class="card-header">
-          <div class="card-title">${item["Nama Pelanggan"] || 'Tanpa Nama'}</div>
-          <div class="card-status ${item["Status"]}">${item["Status"]}</div>
-        </div>
-        
-        <div class="card-field">
-          <label>Nomor Ticket</label>
-          <input type="text" value="${item["Nomor Ticket"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticket', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Kategori</label>
-          <input type="text" value="${item["Kategori"] || ''}" onchange="debouncedUpdate(${index}, 'Kategori', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Deskripsi Kendala</label>
-          <input type="text" value="${item["Deskripsi Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Deskripsi Kendala', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Waktu Mulai</label>
-          <input type="text" value="${item["Waktu Mulai"]}" readonly style="opacity:0.7; cursor:not-allowed;">
-        </div>
-        <div class="card-field">
-          <label>Waktu Selesai</label>
-          <input type="text" value="${item["Waktu Selesai"] || '-'}" readonly style="opacity:0.7; cursor:not-allowed;">
-        </div>
-        <div class="card-field">
-          <label>Durasi (Menit)</label>
-          <input type="text" value="${item["Durasi (Menit)"] || '-'}" readonly style="opacity:0.7; cursor:not-allowed;">
-        </div>
-        <div class="card-field">
-          <label>Tindakan Perbaikan</label>
-          <input type="text" value="${item["Tindakan Perbaikan"] || ''}" onchange="debouncedUpdate(${index}, 'Tindakan Perbaikan', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Analisa Kendala</label>
-          <input type="text" value="${item["Analisa Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Analisa Kendala', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Nama Router</label>
-          <input type="text" value="${item["Nama Router"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Router', this.value)">
-        </div>
-        <div class="card-field">
-          <label>IP Router</label>
-          <input type="text" value="${item["IP Router"] || ''}" onchange="debouncedUpdate(${index}, 'IP Router', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Detail Perubahan</label>
-          <input type="text" value="${item["Detail Perubahan"] || ''}" onchange="debouncedUpdate(${index}, 'Detail Perubahan', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Nama NOC</label>
-          <input type="text" value="${item["Nama NOC"] || ''}" onchange="debouncedUpdate(${index}, 'Nama NOC', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Nama Metro</label>
-          <input type="text" value="${item["Nama Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Metro', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Site Metro</label>
-          <input type="text" value="${item["Site Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Site Metro', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Nomor Ticker</label>
-          <input type="text" value="${item["Nomor Ticker"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticker', this.value)">
-        </div>
-        <div class="card-field">
-          <label>Status</label>
-          <select onchange="debouncedUpdate(${index}, 'Status', this.value)">
-            <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
-            <option value="Closed" ${item["Status"]==='Closed'?'selected':''}>Closed</option>
-            <option value="Pending" ${item["Status"]==='Pending'?'selected':''}>Pending</option>
-          </select>
-        </div>
-
-        <div class="card-actions">
-          ${stopBtn}
-          <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan Manual</button>
+      
+      // Header Kartu (Selalu Terlihat)
+      const headerHTML = `
+        <div class="card-header" onclick="toggleCard(this)">
+          <div class="card-title-area">
+            <div class="card-customer">${item["Nama Pelanggan"] || 'Tanpa Nama'}</div>
+            <div class="card-time">${item["Waktu Mulai"]} • ${item["Durasi (Menit)"] || '-'} mnt</div>
+          </div>
+          <div class="card-status-badge ${item["Status"]}">${item["Status"]}</div>
         </div>
       `;
+
+      // Body Kartu (Tersembunyi, Berisi Semua Input)
+      const bodyHTML = `
+        <div class="card-body">
+          <div class="card-field"><label>Nomor Ticket</label><input type="text" value="${item["Nomor Ticket"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticket', this.value)"></div>
+          <div class="card-field"><label>Kategori</label><input type="text" value="${item["Kategori"] || ''}" onchange="debouncedUpdate(${index}, 'Kategori', this.value)"></div>
+          <div class="card-field"><label>Deskripsi Kendala</label><input type="text" value="${item["Deskripsi Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Deskripsi Kendala', this.value)"></div>
+          <div class="card-field"><label>Tindakan Perbaikan</label><input type="text" value="${item["Tindakan Perbaikan"] || ''}" onchange="debouncedUpdate(${index}, 'Tindakan Perbaikan', this.value)"></div>
+          <div class="card-field"><label>Analisa Kendala</label><input type="text" value="${item["Analisa Kendala"] || ''}" onchange="debouncedUpdate(${index}, 'Analisa Kendala', this.value)"></div>
+          <div class="card-field"><label>Nama Router</label><input type="text" value="${item["Nama Router"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Router', this.value)"></div>
+          <div class="card-field"><label>IP Router</label><input type="text" value="${item["IP Router"] || ''}" onchange="debouncedUpdate(${index}, 'IP Router', this.value)"></div>
+          <div class="card-field"><label>Detail Perubahan</label><input type="text" value="${item["Detail Perubahan"] || ''}" onchange="debouncedUpdate(${index}, 'Detail Perubahan', this.value)"></div>
+          <div class="card-field"><label>Nama NOC</label><input type="text" value="${item["Nama NOC"] || ''}" onchange="debouncedUpdate(${index}, 'Nama NOC', this.value)"></div>
+          <div class="card-field"><label>Nama Metro</label><input type="text" value="${item["Nama Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Nama Metro', this.value)"></div>
+          <div class="card-field"><label>Site Metro</label><input type="text" value="${item["Site Metro"] || ''}" onchange="debouncedUpdate(${index}, 'Site Metro', this.value)"></div>
+          <div class="card-field"><label>Nomor Ticker</label><input type="text" value="${item["Nomor Ticker"] || ''}" onchange="debouncedUpdate(${index}, 'Nomor Ticker', this.value)"></div>
+          <div class="card-field"><label>Status</label>
+            <select onchange="debouncedUpdate(${index}, 'Status', this.value)">
+              <option value="Open" ${item["Status"]==='Open'?'selected':''}>Open</option>
+              <option value="Closed" ${item["Status"]==='Closed'?'selected':''}>Closed</option>
+              <option value="Pending" ${item["Status"]==='Pending'?'selected':''}>Pending</option>
+            </select>
+          </div>
+          
+          <div class="card-actions">
+            ${item["Status"] !== 'Closed' ? `<button class="btn-stop-card" onclick="stopIncident(${index})">⏹ Hentikan Gangguan</button>` : ''}
+            <button class="btn-save-row" onclick="saveRowUpdate(${index})">💾 Simpan Perubahan</button>
+          </div>
+        </div>
+      `;
+
+      card.innerHTML = headerHTML + bodyHTML;
       container.appendChild(card);
     });
   }
 
-  // DEBOUNCED UPDATE (AUTO SAVE SETELAH BERHENTI MENGETIK)
+  // FUNGSI TOGGLE ACCORDION
+  function toggleCard(headerElement) {
+    const body = headerElement.nextElementSibling;
+    body.classList.toggle('open');
+  }
+
+  // DEBOUNCED UPDATE (AUTO SAVE)
   function debouncedUpdate(index, field, value) {
     currentData[index][field] = value;
     clearTimeout(saveTimeout);
     
-    // Update indikator di desktop jika ada
     const indicator = document.getElementById(`save-ind-${index}`);
     if(indicator) indicator.classList.add('active');
 
@@ -428,7 +408,7 @@
     currentData[index]["Status"] = "Closed";
     
     renderDesktopTable(currentData); 
-    renderMobileCards(currentData); // Refresh tampilan mobile juga
+    renderMobileCards(currentData); 
     saveRowUpdate(index);
     showToast("✅ Gangguan dihentikan!");
   }
